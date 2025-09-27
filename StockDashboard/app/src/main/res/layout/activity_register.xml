@@ -42,15 +42,17 @@
         />
     <Button
         android:id="@+id/registerButton"
-        android:layout_width="match_parent"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:text="Signup"
+        android:backgroundTint="@color/button_color"
         />
     <Button
         android:id="@+id/backLoginButton"
-        android:layout_width="match_parent"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:text="Back to Login"
+        android:backgroundTint="@color/button_color"
         />
 
 
