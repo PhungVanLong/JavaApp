@@ -82,16 +82,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
 
-    /*
-     * Xử lý nút Back
-     */
-    @Override
-    public void onBackPressed() {
-        if (fragmentManager.getBackStackEntryCount() > 0) {
-            fragmentManager.popBackStack();
-        } else {
-            finishAffinity();
-        }
     }
+
 
 }
