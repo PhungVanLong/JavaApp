@@ -81,18 +81,5 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // điều hướng nút back
-    @Override
-    public void onBackPressed() {
-        new AlertDialog.Builder(this)
-                .setTitle("Exit App")
-                .setMessage("Exit = gay ?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    finishAffinity(); // Đóng app
-                })
-                .setNegativeButton("No", (dialog, which) -> {
-                    dialog.dismiss(); // thôi
-                })
-                .show();
-    }
+
 }

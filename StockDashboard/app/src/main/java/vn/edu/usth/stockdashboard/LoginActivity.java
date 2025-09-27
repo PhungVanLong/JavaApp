@@ -8,10 +8,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import vn.edu.usth.stockdashboard.data.DatabaseHelper;
+
 public class LoginActivity extends AppCompatActivity {
 
     EditText username, password;
-    Button loginButton, registerButton;
+    Button loginButton, registerButton, skipButton;
     DatabaseHelper databaseHelper;
 
 
@@ -20,11 +21,12 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_layout);
-// setupz
+// setup
         username = findViewById(R.id.usernameText);
         password = findViewById(R.id.passwordText);
         loginButton = findViewById(R.id.loginButton);
         registerButton = findViewById(R.id.registerButton);
+        skipButton= findViewById(R.id.skip_button);
         databaseHelper = new DatabaseHelper(this);
 
         registerButton.setOnClickListener(new View.OnClickListener() {
@@ -38,7 +40,7 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String user = username.getText().toString().trim();
+                    String user = username.getText().toString().trim();
                 String pass = password.getText().toString().trim();
                 if (user.isEmpty() || pass.isEmpty())
                 {
@@ -62,5 +64,12 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        skipButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 }
