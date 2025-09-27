@@ -54,6 +54,11 @@
         android:backgroundTint="@color/button_color"
         android:text="Register"
         />
+    <Button
+        android:id="@+id/skip_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Skip"/>
 
 
 

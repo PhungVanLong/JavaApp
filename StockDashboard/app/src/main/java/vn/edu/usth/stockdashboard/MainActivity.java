@@ -81,9 +81,8 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         return false;
-    }
 
-    /**
+    /*
      * Xử lý nút Back
      */
     @Override
@@ -94,4 +93,5 @@ public class MainActivity extends AppCompatActivity {
             finishAffinity();
         }
     }
+
 }
