@@ -51,7 +51,7 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     * Thiết lập Bottom Navigation
+     * Tạo lập Bottom Navigation
      */
     private void setupBottomNavigation() {
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
