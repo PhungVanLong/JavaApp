@@ -11,10 +11,14 @@ import androidx.fragment.app.FragmentTransaction;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
-public class MainActivity extends AppCompatActivity {
+import vn.edu.usth.stockdashboard.fragments.DashboardFragment;
+import vn.edu.usth.stockdashboard.fragments.PortfolioFragment;
+import vn.edu.usth.stockdashboard.fragments.StocksFragment;
+import vn.edu.usth.stockdashboard.fragments.UserAccountFragment;
+
+public class MainActivity extends BaseActivity {
 
     private String currentUsername;
-    private BottomNavigationView bottomNavigationView;
     private FragmentManager fragmentManager;
 
     @Override
@@ -50,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
      * Thiết lập Bottom Navigation
      */
     private void setupBottomNavigation() {
-        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull android.view.MenuItem item) {

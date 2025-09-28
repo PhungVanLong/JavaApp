@@ -1,4 +1,4 @@
-package vn.edu.usth.stockdashboard;
+package vn.edu.usth.stockdashboard.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -8,9 +8,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-public class PortfolioFragment extends Fragment {
+import vn.edu.usth.stockdashboard.R;
 
-    public PortfolioFragment() {
+public class StocksFragment extends Fragment {
+
+    public StocksFragment() {
         // Required empty public constructor
     }
 
@@ -18,13 +20,13 @@ public class PortfolioFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_portfolio, container, false);
+        return inflater.inflate(R.layout.fragment_stocks, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Thêm logic cho Portfolio fragment ở đây
+        // Thêm logic cho Stocks fragment ở đây
     }
 }

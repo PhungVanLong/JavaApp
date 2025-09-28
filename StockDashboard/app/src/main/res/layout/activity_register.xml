@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,8 +9,7 @@
     tools:ignore="TextFields"
     android:gravity="center_horizontal"
     android:background="@drawable/back_ground_app"
-    tools:context=".RegisterActivity"
-    >
+    tools:context=".RegisterActivity">
 
 
     <ImageView
@@ -17,7 +17,24 @@
         android:layout_width="130dp"
         android:layout_height="130dp"
         android:layout_marginTop="140dp"
+        android:contentDescription="@string/cont_des_image"
         android:src="@drawable/logo_app" />
+
+    <RelativeLayout
+        android:layout_marginTop="100dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        >
+        <ImageView
+            android:contentDescription="@string/cont_des_image"
+            android:src="@drawable/person"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            app:tint="@android:color/white" />
     <EditText
         android:id="@+id/usernameText"
         android:layout_width="match_parent"
@@ -28,6 +45,22 @@
         android:textColorHint="#BDBCBC"
         android:textStyle="italic"
         android:gravity="center"
+        />  </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginTop="10dp"
+        >
+    <ImageView
+        android:contentDescription="@string/cont_des_image"
+        android:layout_width="29dp"
+        android:layout_height="29dp"
+        android:src="@drawable/lock"
+        app:tint="@android:color/white"
+        android:layout_marginTop="4dp"
         />
     <EditText
         android:id="@+id/passwordText"
@@ -40,19 +73,31 @@
         android:textStyle="italic"
         android:gravity="center"
         />
+    </RelativeLayout>
     <Button
         android:id="@+id/registerButton"
-        android:layout_width="300dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Signup"
-        android:backgroundTint="@color/button_color"
+        android:text="@string/signup_button"
+        android:backgroundTint="@color/button_color_1"
+        android:textSize="20sp"
+        android:layout_marginTop="40dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:textColor="@color/black"
+
         />
     <Button
         android:id="@+id/backLoginButton"
-        android:layout_width="300dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Back to Login"
-        android:backgroundTint="@color/button_color"
+        android:text="@string/back_button"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:backgroundTint="@color/button_color_2"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+
         />
 
 
