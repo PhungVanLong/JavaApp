@@ -48,4 +48,5 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.fragment:fragment:1.6.1")
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
 }
