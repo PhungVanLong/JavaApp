@@ -1,8 +1,10 @@
 package vn.edu.usth.stockdashboard;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -20,6 +22,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+
+        // Setup transparent gesture bar
+        setupTransparentGestureBar();
         // Lấy username từ Intent
         currentUsername = getIntent().getStringExtra("USERNAME");
         if (currentUsername == null || currentUsername.isEmpty()) {
@@ -83,6 +91,13 @@ public class MainActivity extends AppCompatActivity {
         return false;
 
     }
+    private void setupTransparentGestureBar() {
+        // Edge-to-edge
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
+        // System bars trong suốt
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+    }
 
 }
