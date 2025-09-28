@@ -1,15 +1,19 @@
 package vn.edu.usth.stockdashboard;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+
 import vn.edu.usth.stockdashboard.data.DatabaseHelper;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends BaseActivity {
 
     EditText username, password;
     Button loginButton, registerButton, skipButton;
@@ -21,12 +25,19 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_layout);
+
+//        if (getSupportActionBar() != null) {
+//            getSupportActionBar().hide();
+//        }
+//
+//        // Setup transparent gesture bar
+//        setupTransparentGestureBar();
+
 // setup
         username = findViewById(R.id.usernameText);
         password = findViewById(R.id.passwordText);
         loginButton = findViewById(R.id.loginButton);
         registerButton = findViewById(R.id.registerButton);
-        skipButton= findViewById(R.id.skip_button);
         databaseHelper = new DatabaseHelper(this);
 
         registerButton.setOnClickListener(new View.OnClickListener() {
@@ -64,12 +75,16 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        skipButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                startActivity(intent);
-            }
-        });
+
     }
+
+//    private void setupTransparentGestureBar() {
+//        // Edge-to-edge
+//        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+//
+//        // System bars trong suốt
+//        getWindow().setStatusBarColor(Color.TRANSPARENT);
+//        getWindow().setNavigationBarColor(Color.TRANSPARENT);
+//    }
+
 }
