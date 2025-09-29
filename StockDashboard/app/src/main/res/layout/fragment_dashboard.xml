@@ -3,19 +3,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
     android:padding="16dp"
-    android:background="@color/main_color">
+    android:background="@drawable/back_ground_app">
 
     <!-- ae thêm tính năng thì vẽ trc vào đây -->
-    <TextView
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="17dp"
+
+        >
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@string/cont_des_image"
+            android:src="@drawable/logo_app" />
+
+        <TextView
+            android:id="@+id/title_Dashboad"
+        android:layout_marginStart="50dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/dashboard"
+        android:layout_centerVertical="true"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@color/white"/>
 
+</RelativeLayout>
 
-
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_marginTop="10dp"
+        android:id="@+id/recyclerView_db"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+    <!-- Menu -->
 </LinearLayout>

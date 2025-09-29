@@ -7,13 +7,25 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import vn.edu.usth.stockdashboard.R;
+import vn.edu.usth.stockdashboard.StockItem;
+import vn.edu.usth.stockdashboard.adapter.StockAdapter;
 
 public class DashboardFragment extends Fragment {
+    private RecyclerView recyclerView;
+    private StockAdapter stockAdapter;
+    private List<StockItem> stockList;
 
     public DashboardFragment() {
         // Required empty public constructor
+
+
     }
 
     @Override
@@ -28,5 +40,29 @@ public class DashboardFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Thêm logic cho Dashboard fragment ở đây
+        recyclerView = view.findViewById(R.id.recyclerView_db);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        stockList = new ArrayList<>();
+        stockList.add(new StockItem("AAPL", "12:12:00 AM", 173.31, -1.69, 212694));
+        stockList.add(new StockItem("GOOG", "12:15:00 AM", 2820.50, 3.14, 185000));
+        stockList.add(new StockItem("MSFT", "12:20:00 AM", 299.99, -0.52, 99000));
+        stockList.add(new StockItem("VFS", "12:12:00 AM", 173.31, -1.69, 212694));
+        stockList.add(new StockItem("VNI", "12:15:00 AM", 2820.50, 3.14, 185000));
+
+        stockList.add(new StockItem("AAPL", "12:12:00 AM", 173.1, -1.69, 212694));
+        stockList.add(new StockItem("GOOG", "12:15:00 AM", 2820.0, 3.14, 185000));
+        stockList.add(new StockItem("MSFT", "12:20:00 AM", 299.9, -0.52, 99000));
+        stockList.add(new StockItem("VFS", "12:12:00 AM", 173.1, -1.69, 212694));
+        stockList.add(new StockItem("VNI", "12:15:00 AM", 2820.0, 3.14, 185000));
+        stockList.add(new StockItem("USTH", "12:20:00 AM", 299.9, -0.52, 99000));
+        stockList.add(new StockItem("AAPL", "12:12:00 AM", 173.1, -1.69, 212694));
+        stockList.add(new StockItem("GOOG", "12:15:00 AM", 2820.0, 3.14, 185000));
+        stockList.add(new StockItem("MSFT", "12:20:00 AM", 299.9, -0.52, 99000));
+        stockList.add(new StockItem("VFS", "12:12:00 AM", 173.1, -1.69, 212694));
+        stockList.add(new StockItem("VNI", "12:15:00 AM", 2820.0, 3.14, 185000));
+        stockList.add(new StockItem("USTH", "12:20:00 AM", 299.9, -0.52, 99000));
+
+        stockAdapter = new StockAdapter(stockList);
+        recyclerView.setAdapter(stockAdapter);
     }
 }

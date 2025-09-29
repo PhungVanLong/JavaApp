@@ -44,6 +44,7 @@
         android:hint="@string/hint_user"
         android:textColorHint="#BDBCBC"
         android:textStyle="italic"
+            android:textColor="@color/white"
         android:gravity="center"
         /> </RelativeLayout>
 
@@ -70,6 +71,7 @@
             android:autofillHints="password"
             android:ems="10"
             android:gravity="center"
+            android:textColor="@color/white"
             android:hint="@string/hint_password"
             android:inputType="textPersonName"
             android:textColorHint="#BDBCBC"
