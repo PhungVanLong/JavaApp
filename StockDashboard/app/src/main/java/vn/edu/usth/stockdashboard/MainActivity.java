@@ -8,26 +8,33 @@ import androidx.core.view.WindowCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+import java.util.List;
+
+import vn.edu.usth.stockdashboard.adapter.StockAdapter;
+import vn.edu.usth.stockdashboard.fragments.DashboardFragment;
+import vn.edu.usth.stockdashboard.fragments.PortfolioFragment;
+import vn.edu.usth.stockdashboard.fragments.StocksFragment;
+import vn.edu.usth.stockdashboard.fragments.UserAccountFragment;
+
+public class MainActivity extends BaseActivity {
 
     private String currentUsername;
-    private BottomNavigationView bottomNavigationView;
     private FragmentManager fragmentManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
 
-        // Setup transparent gesture bar
-        setupTransparentGestureBar();
         // Lấy username từ Intent
         currentUsername = getIntent().getStringExtra("USERNAME");
         if (currentUsername == null || currentUsername.isEmpty()) {
@@ -44,13 +51,14 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             loadFragment(new DashboardFragment());
         }
+
     }
 
-    /**
-     * Thiết lập Bottom Navigation
-     */
+
+//     Tạo lập Bottom Navigation
+
     private void setupBottomNavigation() {
-        bottomNavigationView = findViewById(R.id.bottom_navigation);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull android.view.MenuItem item) {
@@ -91,13 +99,6 @@ public class MainActivity extends AppCompatActivity {
         return false;
 
     }
-    private void setupTransparentGestureBar() {
-        // Edge-to-edge
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
-        // System bars trong suốt
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().setNavigationBarColor(Color.TRANSPARENT);
-    }
 
 }

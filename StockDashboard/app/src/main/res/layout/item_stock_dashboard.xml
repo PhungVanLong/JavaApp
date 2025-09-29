@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:orientation="vertical"
+    android:background="@android:color/transparent"
+    android:layout_marginTop="10dp"
+    android:paddingEnd="10dp"
+    android:paddingStart="10dp"
+
+    >
+    <TextView android:id="@+id/txtSymbol"
+        android:paddingTop="8dp"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:text="Code"
+        android:textColor="@color/white"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <TextView android:id="@+id/txtTime"
+        android:paddingBottom="8dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        android:layout_marginTop="28dp"
+        android:text="time"
+        android:textColor="@color/white"
+        />
+
+    <TextView android:id="@+id/txtPrice"
+        android:layout_alignParentEnd="true"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"/>
+
+    <TextView android:id="@+id/txtChange"
+        android:layout_alignParentEnd="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+android:paddingTop="18dp"
+        android:textColor="@color/white"/>
+
+    <TextView android:id="@+id/txtVolume"
+        android:layout_alignParentEnd="true"
+        android:layout_width="wrap_content"
+        android:textSize="12sp"
+android:paddingTop="33dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"/>
+</RelativeLayout>

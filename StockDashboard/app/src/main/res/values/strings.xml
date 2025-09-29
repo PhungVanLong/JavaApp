@@ -8,7 +8,21 @@
     <string name="welcome">"Welcome !"</string>
     <string name="invalid_username">Not a valid username</string>
     <string name="invalid_password">Password must be >5 characters</string>
-    <string name="login_failed">"Login failed"</string>
+    <string name="login_failed">Login failed</string>
+    <string name="hint_user">User name</string>
+    <string name="hint_password"> Password </string>
+<!--    Activity-->
+    <string name="dashboard">Stock Dashboard</string>
+    <string name="portfolio">Stock Portfolio</string>
+    <string name="detail_stock">Stock</string>
+<!--    Button   -->
+    <string name="login_button">Login</string>
+    <string name="register_button">Register</string>
+    <string name="signup_button">Signup</string>
+    <string name="back_button">Back to Login</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+<!--  ContentDescriptions-->
+    <string name="cont_des_image">Image</string>
+
 </resources>

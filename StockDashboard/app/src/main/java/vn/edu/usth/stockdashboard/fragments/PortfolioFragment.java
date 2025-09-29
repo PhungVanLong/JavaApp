@@ -1,4 +1,4 @@
-package vn.edu.usth.stockdashboard;
+package vn.edu.usth.stockdashboard.fragments;
 
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -15,6 +15,10 @@ import com.google.android.flexbox.FlexWrap;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import vn.edu.usth.stockdashboard.PortfolioAdapter;
+import vn.edu.usth.stockdashboard.R;
+import vn.edu.usth.stockdashboard.Stock;
 
 public class PortfolioFragment extends Fragment {
 
@@ -33,7 +37,9 @@ public class PortfolioFragment extends Fragment {
         stockList.add(new Stock("AAPL", "175.3 USD", "1000", "1200", "+200"));
         stockList.add(new Stock("GOOG", "2800 USD", "5000", "4800", "-200"));
         stockList.add(new Stock("TSLA", "750 USD", "2000", "2500", "+500"));
+        // Thêm logic cho Portfolio fragment ở đây
 
+//=======
         recyclerView = view.findViewById(R.id.recyclerView);
 
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager(getContext());
@@ -47,5 +53,6 @@ public class PortfolioFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         return view;
+//>>>>>>> main:StockDashboard/app/src/main/java/vn/edu/usth/stockdashboard/PortfolioFragment.java
     }
 }

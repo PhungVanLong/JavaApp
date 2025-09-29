@@ -59,7 +59,7 @@
         android:layout_height="wrap_content"
         android:text="Logout"
         android:textSize="16sp"
-        android:backgroundTint="@color/button_color"
+        android:backgroundTint="@color/button_color_1"
         android:padding="12dp"
         />
 
