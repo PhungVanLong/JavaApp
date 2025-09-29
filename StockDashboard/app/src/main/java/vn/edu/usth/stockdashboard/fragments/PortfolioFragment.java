@@ -39,7 +39,6 @@ public class PortfolioFragment extends Fragment {
         stockList.add(new Stock("TSLA", "750 USD", "2000", "2500", "+500"));
         // Thêm logic cho Portfolio fragment ở đây
 
-//=======
         recyclerView = view.findViewById(R.id.recyclerView);
 
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager(getContext());
@@ -53,6 +52,6 @@ public class PortfolioFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         return view;
-//>>>>>>> main:StockDashboard/app/src/main/java/vn/edu/usth/stockdashboard/PortfolioFragment.java
+
     }
 }
