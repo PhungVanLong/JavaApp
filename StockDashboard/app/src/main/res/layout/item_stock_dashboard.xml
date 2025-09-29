@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="48dp"
     android:orientation="vertical"
-    android:background="@android:color/transparent"
+    android:background="@color/main_but_fader"
     android:layout_marginTop="10dp"
     android:paddingEnd="10dp"
     android:paddingStart="10dp"
