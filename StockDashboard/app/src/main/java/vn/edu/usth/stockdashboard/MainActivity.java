@@ -14,13 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import vn.edu.usth.stockdashboard.adapter.StockAdapter;
 import vn.edu.usth.stockdashboard.fragments.DashboardFragment;
 import vn.edu.usth.stockdashboard.fragments.PortfolioFragment;
-import vn.edu.usth.stockdashboard.fragments.StocksFragment;
 import vn.edu.usth.stockdashboard.fragments.UserAccountFragment;
 
 public class MainActivity extends BaseActivity {
@@ -67,8 +62,6 @@ public class MainActivity extends BaseActivity {
                 int itemId = item.getItemId();
                 if (itemId == R.id.nav_dashboard) {
                     selectedFragment = new DashboardFragment();
-                } else if (itemId == R.id.nav_stocks) {
-                    selectedFragment = new StocksFragment();
                 } else if (itemId == R.id.nav_portfolio) {
                     selectedFragment = new PortfolioFragment();
                 } else if (itemId == R.id.nav_account) {
