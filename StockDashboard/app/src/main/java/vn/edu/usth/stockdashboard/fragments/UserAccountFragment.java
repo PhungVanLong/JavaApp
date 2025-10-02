@@ -1,4 +1,4 @@
-package vn.edu.usth.stockdashboard;
+package vn.edu.usth.stockdashboard.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +12,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+
+import vn.edu.usth.stockdashboard.LoginActivity;
+import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.data.DatabaseHelper;
 
 public class UserAccountFragment extends Fragment {

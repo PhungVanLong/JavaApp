@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import vn.edu.usth.stockdashboard.data.DatabaseHelper;
 
-public class RegisterActivity extends AppCompatActivity {
+public class RegisterActivity extends BaseActivity {
     EditText username, password;
     Button backLoginButton, registerButton;
     DatabaseHelper databaseHelper;
