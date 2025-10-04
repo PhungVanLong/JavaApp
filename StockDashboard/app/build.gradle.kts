@@ -32,6 +32,7 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    buildToolsVersion = "36.0.0"
 }
 
 dependencies {// build.gradle (Module)
@@ -49,7 +50,10 @@ dependencies {// build.gradle (Module)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("androidx.fragment:fragment:1.6.1")
+
+    implementation("com.github.AnyChart:AnyChart-Android:1.1.2")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.google.android.material:material:1.4.0 ")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
-
 }
