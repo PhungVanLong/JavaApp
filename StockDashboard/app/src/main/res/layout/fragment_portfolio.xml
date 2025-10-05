@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@drawable/back_ground_app">
+    android:background="@drawable/back_ground_app"
+    android:fitsSystemWindows="true">
 
     <!-- ae thêm tính năng thì vẽ trc vào đây -->
     <RelativeLayout
