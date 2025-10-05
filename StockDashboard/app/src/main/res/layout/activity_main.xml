@@ -33,7 +33,7 @@
         app:itemTextColor="@color/white"
         app:labelVisibilityMode="labeled"
         app:itemIconSize="20dp"
-        android:paddingTop="20dp"
+        android:paddingTop="10dp"
         app:itemHorizontalTranslationEnabled="false"
         android:layout_alignParentBottom="true"
         app:itemActiveIndicatorStyle="@style/App.Custom.Indicator"

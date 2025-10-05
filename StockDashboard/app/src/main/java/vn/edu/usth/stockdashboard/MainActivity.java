@@ -29,6 +29,13 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Làm đồng bộ màu giữa BottomNavigationView và thanh điều hướng hệ thống
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(Color.BLACK);
+            getWindow().setStatusBarColor(Color.BLACK);
+        }
+
+
 
         // Lấy username từ Intent
         currentUsername = getIntent().getStringExtra("USERNAME");
@@ -50,7 +57,7 @@ public class MainActivity extends BaseActivity {
     }
 
 
-//     Tạo lập Bottom Navigation
+// Tạo Bottom Navigation
 
     private void setupBottomNavigation() {
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);

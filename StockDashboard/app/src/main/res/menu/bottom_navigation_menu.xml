@@ -3,18 +3,21 @@
     <item
         android:id="@+id/nav_dashboard"
         android:icon="@drawable/dashboard_icon"
+        android:iconTint="@color/white"
         android:title="Dashboard"
         />
 
     <item
         android:id="@+id/nav_portfolio"
         android:icon="@drawable/portfolio_icon"
+        android:iconTint="@color/white"
         android:title="Portfolio"
         />
 
     <item
         android:id="@+id/nav_account"
         android:icon="@drawable/person"
+        android:iconTint="@color/white"
         android:title="Account"
         />
 
