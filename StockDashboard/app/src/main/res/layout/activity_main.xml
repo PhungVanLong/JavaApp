@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+
+ <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/main_color">
+    android:background="@drawable/back_ground_app"
+    android:padding="20sp"
+    android:fitsSystemWindows="true">
 
-    <!-- Vứt Fragment vào đây -->
+    <include
+        layout="@layout/header_layout"
+        android:id="@+id/logo_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <!-- Container của fragment -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-
+        android:layout_below="@id/logo_header"
+        android:layout_above="@id/bottom_navigation"/>
 
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -27,11 +33,10 @@
         app:itemTextColor="@color/white"
         app:labelVisibilityMode="labeled"
         app:itemIconSize="20dp"
-        android:padding="0dp"
         android:paddingTop="20dp"
         app:itemHorizontalTranslationEnabled="false"
         android:layout_alignParentBottom="true"
-        app:itemGravity="top_center"
+        app:itemActiveIndicatorStyle="@style/App.Custom.Indicator"
         />
 
 

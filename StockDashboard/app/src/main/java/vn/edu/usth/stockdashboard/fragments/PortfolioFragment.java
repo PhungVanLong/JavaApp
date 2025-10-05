@@ -57,6 +57,9 @@ public class PortfolioFragment extends Fragment {
 
         // Thêm logic cho Portfolio fragment ở đây
 
+
+
+
         recyclerView = view.findViewById(R.id.recyclerView);
 
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager(getContext());
