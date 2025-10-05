@@ -1,5 +1,6 @@
 package vn.edu.usth.stockdashboard.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,14 +14,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
+import vn.edu.usth.stockdashboard.ChartActivity;
 import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.StockItem;
 import vn.edu.usth.stockdashboard.adapter.StockAdapter;
 
 public class DashboardFragment extends Fragment {
-    private RecyclerView recyclerView;
-    private StockAdapter stockAdapter;
-    private List<StockItem> stockList;
 
     public DashboardFragment() {
         // Required empty public constructor
@@ -40,9 +39,9 @@ public class DashboardFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Thêm logic cho Dashboard fragment ở đây
-        recyclerView = view.findViewById(R.id.recyclerView_db);
+        RecyclerView recyclerView = view.findViewById(R.id.recyclerView_db);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        stockList = new ArrayList<>();
+        List<StockItem> stockList = new ArrayList<>();
         stockList.add(new StockItem("AAPL", "12:12:00 AM", 173.31, -1.69, 212694));
         stockList.add(new StockItem("GOOG", "12:15:00 AM", 2820.50, 3.14, 185000));
         stockList.add(new StockItem("MSFT", "12:20:00 AM", 299.99, -0.52, 99000));
@@ -62,7 +61,17 @@ public class DashboardFragment extends Fragment {
         stockList.add(new StockItem("VNI", "12:15:00 AM", 2820.0, 3.14, 185000));
         stockList.add(new StockItem("USTH", "12:20:00 AM", 299.9, -0.52, 99000));
 
-        stockAdapter = new StockAdapter(stockList);
+        StockAdapter stockAdapter = new StockAdapter(stockList,item -> {
+            // Khi click vào 1 item
+            Intent intent= new Intent(requireContext(), ChartActivity.class);
+            intent.putExtra("symbol", item.getSymbol());
+            intent.putExtra("time", item.getTime());
+            intent.putExtra("price", item.getPrice());
+            intent.putExtra("change", item.getChange());
+            intent.putExtra("volume", item.getVolume());
+            startActivity(intent);
+            // Tạo fragment chi tiết
+    });
         recyclerView.setAdapter(stockAdapter);
     }
 }
