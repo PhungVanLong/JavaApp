@@ -64,11 +64,6 @@ public class DashboardFragment extends Fragment {
         StockAdapter stockAdapter = new StockAdapter(stockList,item -> {
             // Khi click vào 1 item
             Intent intent= new Intent(requireContext(), ChartActivity.class);
-            intent.putExtra("symbol", item.getSymbol());
-            intent.putExtra("time", item.getTime());
-            intent.putExtra("price", item.getPrice());
-            intent.putExtra("change", item.getChange());
-            intent.putExtra("volume", item.getVolume());
             startActivity(intent);
             // Tạo fragment chi tiết
     });
