@@ -35,7 +35,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class ChartActivity extends AppCompatActivity {
+public class ChartActivity extends BaseActivity {
 
     private AnyChartView anyChartView;
     private Handler mainHandler = new Handler(Looper.getMainLooper());
