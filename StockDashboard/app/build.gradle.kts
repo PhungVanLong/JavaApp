@@ -57,5 +57,13 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.google.android.material:material:1.4.0 ")
     implementation("com.google.android.flexbox:flexbox:3.0.0")
+
+    // Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+// OkHttp (optional, for logging)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    // SwipeRefreshLayout
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }
 
