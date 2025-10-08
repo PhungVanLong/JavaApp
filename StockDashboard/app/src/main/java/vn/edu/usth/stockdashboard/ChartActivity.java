@@ -133,7 +133,6 @@ public class ChartActivity extends AppCompatActivity {
         cartesian.yAxis(0).labels().format("${%Value}").fontColor("#bdc3c7");
         cartesian.legend(false);
 
-        // Vẽ line
         cartesian.line(seriesData)
                 .name("Close Price")
                 .color("#00C853")
@@ -141,7 +140,6 @@ public class ChartActivity extends AppCompatActivity {
                 .titleFormat("Date: {%x}")
                 .format("Close: {%value}");
 
-        // Thêm vùng màu gradient giống CoinMarketCap
         cartesian.area(seriesData)
                 .fill(new SolidFill("rgba(0, 200, 83, 0.2)", 1))
                 .stroke("none");
