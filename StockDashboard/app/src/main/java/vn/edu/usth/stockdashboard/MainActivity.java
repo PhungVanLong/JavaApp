@@ -2,6 +2,8 @@ package vn.edu.usth.stockdashboard;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Window;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
@@ -29,6 +31,8 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Window window = getWindow();
+        window.setNavigationBarColor(getResources().getColor(R.color.black));
 
         // Lấy username từ Intent
         currentUsername = getIntent().getStringExtra("USERNAME");
