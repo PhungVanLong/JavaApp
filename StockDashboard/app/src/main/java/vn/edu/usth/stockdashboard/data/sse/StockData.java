@@ -1,24 +1,18 @@
-package vn.edu.usth.stockdashboard.data.model;
+package vn.edu.usth.stockdashboard.data.sse;// Represents the innermost "data" object for each stock
 
-// StockData.java - Data bên trong
 import com.google.gson.annotations.SerializedName;
 
 public class StockData {
     @SerializedName("close")
     private double close;
-
     @SerializedName("high")
     private double high;
-
     @SerializedName("low")
     private double low;
-
     @SerializedName("open")
     private double open;
-
     @SerializedName("time")
     private String time;
-
     @SerializedName("volume")
     private long volume;
 
@@ -30,13 +24,9 @@ public class StockData {
     public String getTime() { return time; }
     public long getVolume() { return volume; }
 
-    // Tính toán change và percentChange
-    public double getChange() {
-        return close - open;
-    }
-
+    public double getChange() { return close - open; }
     public double getPercentChange() {
-        if (open == 0) return 0;
-        return ((close - open) / open) * 100;
+        if (open <= 0) return 0;
+        return (getChange() / open) * 100;
     }
 }

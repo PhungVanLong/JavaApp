@@ -1,12 +1,16 @@
-// StockItem.java - Thêm constructor từ StockApiResponse
 package vn.edu.usth.stockdashboard;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
-import vn.edu.usth.stockdashboard.data.model.StockApiResponse;
-import vn.edu.usth.stockdashboard.data.model.StockData;
+import vn.edu.usth.stockdashboard.data.sse.StockData;
+import vn.edu.usth.stockdashboard.data.sse.StockSymbolData;
+
 
 public class StockItem {
-    private String symbol;
+    // All necessary fields are declared here
+    private final String symbol;
     private String time;
     private double price;
     private double change;
@@ -16,60 +20,69 @@ public class StockItem {
     private double high;
     private double low;
 
-    // Constructor cũ (giữ lại để không bị lỗi)
-    public StockItem(String symbol, String time, double price, double change, long volume) {
+    // Constructor for creating initial placeholders
+    public StockItem(String symbol) {
         this.symbol = symbol;
-        this.time = time;
-        this.price = price;
-        this.change = change;
-        this.volume = volume;
+        this.time = "--:--:--";
     }
 
-    // Constructor mới từ API response
-    public static StockItem fromApiResponse(StockApiResponse response) {
-        StockItem item = new StockItem();
-        StockData data = response.getData();
-
-        item.symbol = response.getSymbol();
-        item.price = data.getClose();
-        item.open = data.getOpen();
-        item.high = data.getHigh();
-        item.low = data.getLow();
-        item.change = data.getChange();
-        item.percentChange = data.getPercentChange();
-        item.volume = data.getVolume();
-        item.time = formatTime(data.getTime());
-
+    // The single, correct way to create a fully populated StockItem
+    public static StockItem fromStockSymbolData(StockSymbolData symbolData) {
+        StockItem item = new StockItem(symbolData.getSymbol());
+        StockData data = symbolData.getData();
+        if (data != null) {
+            item.price = data.getClose();
+            item.open = data.getOpen();
+            item.high = data.getHigh();
+            item.low = data.getLow();
+            item.change = data.getChange();
+            item.percentChange = data.getPercentChange();
+            item.volume = data.getVolume();
+            item.time = formatTime(data.getTime());
+        }
         return item;
     }
 
-    private StockItem() {
-        // Private constructor for factory method
-    }
-
-    private static String formatTime(String time) {
+    // The single, correct time formatting method for this project
+    private static String formatTime(String gmtTime) {
+        if (gmtTime == null || gmtTime.isEmpty()) return "--:--:--";
         try {
-            // Convert "Mon, 06 Oct 2025 00:00:00 GMT" to "12:00:00 AM"
-            java.text.SimpleDateFormat inputFormat =
-                    new java.text.SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", java.util.Locale.ENGLISH);
-            java.text.SimpleDateFormat outputFormat =
-                    new java.text.SimpleDateFormat("hh:mm:ss a", java.util.Locale.ENGLISH);
-
-            java.util.Date date = inputFormat.parse(time);
+            // Input format: "Mon, 13 Oct 2025 00:00:00 GMT"
+            SimpleDateFormat inputFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+            SimpleDateFormat outputFormat = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+            Date date = inputFormat.parse(gmtTime);
             return outputFormat.format(date);
         } catch (Exception e) {
-            return time; // Trả về time gốc nếu parse lỗi
+            return "--:--:--";
         }
     }
 
-    // Getters
-    public String getSymbol() { return symbol; }
-    public String getTime() { return time; }
-    public double getPrice() { return price; }
-    public double getChange() { return change; }
-    public double getPercentChange() { return percentChange; }
-    public long getVolume() { return volume; }
-    public double getOpen() { return open; }
-    public double getHigh() { return high; }
-    public double getLow() { return low; }
+    // Getters for all fields
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public double getChange() {
+        return change;
+    }
+
+    public double getPercentChange() {
+        return percentChange;
+    }
+
+    public long getVolume() {
+        return volume;
+    }
+
+    public double getOpen() {
+        return open;
+    }
 }
