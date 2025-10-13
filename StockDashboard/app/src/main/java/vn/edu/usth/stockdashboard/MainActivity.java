@@ -68,4 +68,6 @@ public class MainActivity extends BaseActivity {
         fragmentManager.beginTransaction().hide(activeFragment).show(fragment).commit();
         activeFragment = fragment;
     }
+
+
 }
