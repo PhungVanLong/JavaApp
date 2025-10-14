@@ -3,14 +3,17 @@ package vn.edu.usth.stockdashboard.data.sse.service;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -22,9 +25,9 @@ import vn.edu.usth.stockdashboard.data.sse.StockSymbolData;
 public class StockSseService {
     private static final String TAG = "StockSseService";
 
-    // Enum to manage connection state
+    // Enum để quản lý trạng thái kết nối
     private enum State { IDLE, CONNECTING, CONNECTED }
-    private volatile State currentState = State.IDLE;
+    private volatile State currentState = State.IDLE; // Dùng volatile để đảm bảo an toàn luồng
 
     private final OkHttpClient client;
     private EventSource eventSource;
@@ -50,23 +53,26 @@ public class StockSseService {
     }
 
     public void connect() {
+        // Ngăn chặn việc bắt đầu kết nối mới nếu đã có kết nối hoặc đang trong tiến trình
         synchronized (this) {
             if (currentState != State.IDLE) {
-                Log.d(TAG, "Connect called but already in state: " + currentState);
+                Log.d(TAG, "Lệnh connect được gọi nhưng đã ở trạng thái: " + currentState);
                 return;
             }
             currentState = State.CONNECTING;
         }
+
         String fullUrl = BASE_SSE_URL + String.join(",", symbols);
         Request request = new Request.Builder().url(fullUrl).build();
         eventSource = EventSources.createFactory(client).newEventSource(request, sseListener);
-        Log.d(TAG, "SSE Connecting...");
+        Log.d(TAG, "SSE đang kết nối...");
     }
 
     public void disconnect() {
+        // Ngăn chặn việc gọi ngắt kết nối nhiều lần
         synchronized (this) {
             if (currentState == State.IDLE) {
-                Log.d(TAG, "Disconnect called but already idle.");
+                Log.d(TAG, "Lệnh disconnect được gọi nhưng đã ở trạng thái nghỉ.");
                 return;
             }
             if (eventSource != null) {
@@ -75,7 +81,7 @@ public class StockSseService {
             }
             currentState = State.IDLE;
         }
-        Log.d(TAG, "SSE Disconnected.");
+        Log.d(TAG, "SSE đã ngắt kết nối.");
     }
 
     private final EventSourceListener sseListener = new EventSourceListener() {
@@ -87,23 +93,25 @@ public class StockSseService {
 
         @Override
         public void onEvent(@NonNull EventSource eventSource, @Nullable String id, @Nullable String type, @NonNull String data) {
-            Log.d(TAG, "RAW SSE DATA RECEIVED: " + data); // Log to see the data
             try {
                 Type topLevelType = new TypeToken<Map<String, Object>>() {}.getType();
                 Map<String, Object> topLevelMap = gson.fromJson(data, topLevelType);
                 Map<String, Object> innerDataMap = (Map<String, Object>) topLevelMap.get("data");
+
                 if (innerDataMap == null) return;
+
                 List<StockSymbolData> stockList = new ArrayList<>();
                 for (Object stockJson : innerDataMap.values()) {
                     String stockJsonString = gson.toJson(stockJson);
                     StockSymbolData stockSymbol = gson.fromJson(stockJsonString, StockSymbolData.class);
                     stockList.add(stockSymbol);
                 }
+
                 if (listener != null && !stockList.isEmpty()) {
                     listener.onStockUpdate(stockList);
                 }
             } catch (JsonSyntaxException e) {
-                Log.e(TAG, "Error parsing batch SSE data: " + data, e);
+                Log.e(TAG, "Lỗi phân tích dữ liệu lô SSE: " + data, e);
             }
         }
 
@@ -116,9 +124,11 @@ public class StockSseService {
         @Override
         public void onFailure(@NonNull EventSource eventSource, @Nullable Throwable t, @Nullable Response response) {
             currentState = State.IDLE;
-            String error = (t != null) ? t.getMessage() : "Unknown SSE error";
+            String error = (t != null) ? t.getMessage() : "Lỗi SSE không xác định";
+
+            // Lỗi "Canceled" là lỗi mong đợi khi chúng ta gọi disconnect(), vì vậy không coi nó là lỗi nghiêm trọng.
             if (!"Canceled".equalsIgnoreCase(error)) {
-                Log.e(TAG, "SSE Connection Failure!", t);
+                Log.e(TAG, "Lỗi kết nối SSE!", t);
                 if (listener != null) listener.onFailure(error);
             }
         }
