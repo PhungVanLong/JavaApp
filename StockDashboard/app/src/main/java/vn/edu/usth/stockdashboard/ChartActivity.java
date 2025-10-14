@@ -38,7 +38,6 @@ import okhttp3.Response;
 public class ChartActivity extends BaseActivity {
 
     private AnyChartView anyChartView;
-    private Handler mainHandler = new Handler(Looper.getMainLooper());
     private TextView titleText;
     private Button btnRefresh;
 

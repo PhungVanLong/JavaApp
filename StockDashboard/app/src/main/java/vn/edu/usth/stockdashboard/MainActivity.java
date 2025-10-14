@@ -1,12 +1,9 @@
 package vn.edu.usth.stockdashboard;
 
 import android.os.Bundle;
-
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
 import vn.edu.usth.stockdashboard.fragments.DashboardFragment;
 import vn.edu.usth.stockdashboard.fragments.PortfolioFragment;
 import vn.edu.usth.stockdashboard.fragments.UserAccountFragment;
@@ -15,10 +12,11 @@ public class MainActivity extends BaseActivity {
 
     private String currentUsername;
     private FragmentManager fragmentManager;
+
     // Keep references to your fragments
     final Fragment dashboardFragment = new DashboardFragment();
     final Fragment portfolioFragment = new PortfolioFragment();
-    Fragment accountFragment; // Will be initialized with username
+    Fragment accountFragment;
     Fragment activeFragment;
 
     @Override
@@ -31,18 +29,19 @@ public class MainActivity extends BaseActivity {
             currentUsername = "User";
         }
 
-        // Initialize the account fragment with username
         accountFragment = UserAccountFragment.newInstance(currentUsername);
-
         fragmentManager = getSupportFragmentManager();
 
         if (savedInstanceState == null) {
-            // Add all fragments initially and hide them
+            // *** FIX: XÓA DÒNG loadFragment(new DashboardFragment()) ***
+            // Add all fragments initially, dashboard is visible by default
             fragmentManager.beginTransaction()
                     .add(R.id.fragment_container, accountFragment, "3").hide(accountFragment)
                     .add(R.id.fragment_container, portfolioFragment, "2").hide(portfolioFragment)
-                    .add(R.id.fragment_container, dashboardFragment, "1").commit(); // Add dashboard last, it will be visible
+                    .add(R.id.fragment_container, dashboardFragment, "1") // Dashboard visible
+                    .commit();
             activeFragment = dashboardFragment;
+            // ← KHÔNG GỌI loadFragment() NỮA!
         }
 
         setupBottomNavigation();
@@ -63,11 +62,13 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    // This method now uses show/hide instead of replace
     private void loadFragment(Fragment fragment) {
-        fragmentManager.beginTransaction().hide(activeFragment).show(fragment).commit();
-        activeFragment = fragment;
+        if (activeFragment != fragment) {
+            fragmentManager.beginTransaction()
+                    .hide(activeFragment)
+                    .show(fragment)
+                    .commit();
+            activeFragment = fragment;
+        }
     }
-
-
 }

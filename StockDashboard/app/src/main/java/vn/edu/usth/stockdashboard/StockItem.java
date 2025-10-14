@@ -42,6 +42,18 @@ public class StockItem {
         }
         return item;
     }
+    // Add this new method to update an existing item from the new StockData model
+    public void updateFromData(StockData data) {
+        if (data == null) return;
+        this.price = data.getClose();
+        this.open = data.getOpen();
+        this.high = data.getHigh();
+        this.low = data.getLow();
+        this.change = data.getChange();
+        this.percentChange = data.getPercentChange();
+        this.volume = data.getVolume();
+        this.time = formatTime(data.getTime());
+    }
 
     // The single, correct time formatting method for this project
     private static String formatTime(String gmtTime) {
