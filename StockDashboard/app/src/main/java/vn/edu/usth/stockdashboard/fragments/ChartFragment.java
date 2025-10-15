@@ -96,7 +96,6 @@ public class ChartFragment extends Fragment {
 
         lineChart = view.findViewById(R.id.line_chart);
         titleText = view.findViewById(R.id.titleText);
-        loadingText = view.findViewById(R.id.loadingText);
         chipGroup = view.findViewById(R.id.chipGroup);
 
         setupHandler();
