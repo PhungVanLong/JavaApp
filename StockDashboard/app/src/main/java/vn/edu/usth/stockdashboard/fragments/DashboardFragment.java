@@ -27,18 +27,35 @@ import vn.edu.usth.stockdashboard.data.sse.service.StockSseService;
 public class DashboardFragment extends Fragment implements StockSseService.SseUpdateListener {
 
     private static final String TAG = "DashboardFragment";
+    private static final String KEY_STOCK_LIST = "stock_list_state";
+    private static final String KEY_HAS_DATA = "has_initial_data";
+
     private RecyclerView recyclerView;
     private StockAdapter stockAdapter;
     private List<StockItem> stockList = new ArrayList<>();
     private StockSseService sseService;
     private ProgressBar progressBar;
 
-    // *** THÊM FLAG ĐỂ KIỂM SOÁT VIỆC ẨN PROGRESS BAR ***
-    private boolean isFirstLoad = true;
+    // Cờ để kiểm tra đã có dữ liệu ban đầu chưa
+    private boolean hasInitialData = false;
 
     private List<String> symbols = Arrays.asList(
             "ACB", "BID", "SSI", "VPB", "HPG", "VCB", "FPT", "VIC", "MSN", "MWG", "TCB"
     );
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Restore state nếu có
+        if (savedInstanceState != null) {
+            hasInitialData = savedInstanceState.getBoolean(KEY_HAS_DATA, false);
+            Log.d(TAG, "📦 Restored state - hasInitialData: " + hasInitialData);
+        }
+
+        // Khởi tạo SSE service
+        sseService = new StockSseService(symbols, this);
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -55,22 +72,53 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
         initializeStockList();
         setupRecyclerView();
 
-        sseService = new StockSseService(symbols, this);
+        // Chỉ show progress bar nếu chưa có dữ liệu
+        if (hasInitialData) {
+            progressBar.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+            Log.d(TAG, "🔄 Fragment recreated - keeping data visible");
+        } else {
+            progressBar.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+            Log.d(TAG, "🆕 First load - showing progress bar");
+        }
     }
 
     private void initializeStockList() {
-        stockList.clear();
-        for (String symbol : symbols) {
-            stockList.add(new StockItem(symbol));
+        // Chỉ khởi tạo lại nếu list rỗng
+        if (stockList.isEmpty()) {
+            for (String symbol : symbols) {
+                stockList.add(new StockItem(symbol));
+            }
+            Log.d(TAG, "📋 Initialized stock list with " + stockList.size() + " items");
+        } else {
+            Log.d(TAG, "♻️ Reusing existing stock list with " + stockList.size() + " items");
         }
     }
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        stockAdapter = new StockAdapter(stockList, item ->
-                Toast.makeText(requireContext(), "Clicked: " + item.getSymbol(), Toast.LENGTH_SHORT).show()
-        );
+        stockAdapter = new StockAdapter(stockList, item -> {
+            // Mở ChartFragment với mã chứng khoán được click
+            openChartFragment(item.getSymbol());
+        });
         recyclerView.setAdapter(stockAdapter);
+    }
+
+    /**
+     * Mở ChartFragment với mã chứng khoán được chọn
+     * @param stockSymbol Mã chứng khoán (VD: "ACB", "VCB")
+     */
+    private void openChartFragment(String stockSymbol) {
+        Log.d(TAG, "📊 Opening chart for: " + stockSymbol);
+
+        ChartFragment chartFragment = ChartFragment.newInstance(stockSymbol);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, chartFragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     // --- SSE Listener Methods ---
@@ -80,12 +128,6 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
         if (!isAdded()) return;
         requireActivity().runOnUiThread(() -> {
             Log.d(TAG, "✅ SSE Connected!");
-            // *** CHỈ ẨN PROGRESS BAR KHI KHÔNG PHẢI LẦN TẢI ĐẦU TIÊN ***
-            // Vì onStockUpdate sẽ xử lý việc ẩn sau khi nhận dữ liệu thực
-            if (!isFirstLoad) {
-                progressBar.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
-            }
         });
     }
 
@@ -94,14 +136,16 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
         if (!isAdded() || newDataMap == null) return;
 
         requireActivity().runOnUiThread(() -> {
-            // *** ẨN PROGRESS BAR KHI NHẬN ĐƯỢC DỮ LIỆU THỰC ***
-            if (progressBar.getVisibility() == View.VISIBLE) {
+            // Ẩn progress bar sau khi nhận dữ liệu đầu tiên
+            if (!hasInitialData) {
+                hasInitialData = true;
                 progressBar.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
-                isFirstLoad = false; // Đánh dấu đã tải xong lần đầu
                 Log.d(TAG, "📊 First data received, hiding progress bar");
             }
 
+            // Update UI ngầm - không show/hide gì cả
+            int updatedCount = 0;
             for (int i = 0; i < stockList.size(); i++) {
                 StockItem currentUiItem = stockList.get(i);
                 StockData newDataFromServer = newDataMap.get(currentUiItem.getSymbol());
@@ -110,9 +154,13 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
                     if (hasDataChanged(currentUiItem, newDataFromServer)) {
                         currentUiItem.updateFromData(newDataFromServer);
                         stockAdapter.notifyItemChanged(i);
-                        Log.d(TAG, "📊 Updated " + currentUiItem.getSymbol());
+                        updatedCount++;
                     }
                 }
+            }
+
+            if (updatedCount > 0) {
+                Log.d(TAG, "🔄 Silent update: " + updatedCount + " items changed");
             }
         });
     }
@@ -132,9 +180,16 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
     public void onFailure(String error) {
         if (!isAdded()) return;
         requireActivity().runOnUiThread(() -> {
-            progressBar.setVisibility(View.GONE);
-            recyclerView.setVisibility(View.VISIBLE);
-            Toast.makeText(requireContext(), "Error: " + error, Toast.LENGTH_LONG).show();
+            // Không ẩn progress bar nếu chưa có dữ liệu
+            if (hasInitialData) {
+                // Có data rồi, chỉ log error thôi
+                Log.e(TAG, "⚠️ SSE Error (silent): " + error);
+            } else {
+                // Chưa có data, show error
+                progressBar.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+                Toast.makeText(requireContext(), "Error: " + error, Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -143,19 +198,10 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "Fragment resumed, connecting SSE...");
+        Log.d(TAG, "▶️ Fragment resumed, connecting SSE silently...");
 
-        // *** LOGIC HIỂN THỊ PROGRESS BAR CHỈ KHI LẦN TẢI ĐẦU TIÊN ***
-        if (isFirstLoad) {
-            progressBar.setVisibility(View.VISIBLE);
-            recyclerView.setVisibility(View.GONE);
-            Log.d(TAG, "First load - showing progress bar");
-        } else {
-            progressBar.setVisibility(View.GONE);
-            recyclerView.setVisibility(View.VISIBLE);
-            Log.d(TAG, "Reconnecting - keeping data visible");
-        }
-
+        // Không show progress bar khi resume
+        // SSE service sẽ tự động update UI ngầm
         if (sseService != null) {
             sseService.connect();
         }
@@ -164,28 +210,41 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
     @Override
     public void onPause() {
         super.onPause();
-        Log.d(TAG, "Fragment paused, disconnecting SSE...");
+        Log.d(TAG, "⏸️ Fragment paused, disconnecting SSE...");
         if (sseService != null) {
             sseService.disconnect();
         }
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        if (sseService != null) {
-            sseService.disconnect();
-        }
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // Lưu trạng thái có dữ liệu hay chưa
+        outState.putBoolean(KEY_HAS_DATA, hasInitialData);
+        Log.d(TAG, "💾 Saved state - hasInitialData: " + hasInitialData);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (sseService != null) {
-            sseService.disconnect();
-            sseService = null;
+        Log.d(TAG, "🗑️ View destroyed");
+        // KHÔNG reset hasInitialData và stockList ở đây
+        // Để giữ data khi back
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "💥 Fragment destroyed completely");
+
+        // Chỉ cleanup khi fragment thực sự bị destroy (không phải config change)
+        if (requireActivity().isFinishing() || !requireActivity().isChangingConfigurations()) {
+            if (sseService != null) {
+                sseService.disconnect();
+                sseService = null;
+            }
+            stockList.clear();
+            hasInitialData = false;
         }
-        // Reset flag khi destroy view
-        isFirstLoad = true;
     }
 }
