@@ -23,8 +23,6 @@ import vn.edu.usth.stockdashboard.StockItem;
 import vn.edu.usth.stockdashboard.adapter.StockAdapter;
 import vn.edu.usth.stockdashboard.data.sse.StockData;
 import vn.edu.usth.stockdashboard.data.sse.service.StockSseService;
-import androidx.lifecycle.ViewModelProvider;
-import vn.edu.usth.stockdashboard.viewmodel.SharedStockViewModel;
 
 public class DashboardFragment extends Fragment implements StockSseService.SseUpdateListener {
 

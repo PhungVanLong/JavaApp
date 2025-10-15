@@ -1,126 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:fitsSystemWindows="true">
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="6dp"
-        app:cardBackgroundColor="#331E1E1E"
-        app:strokeColor="#33FFFFFF"
-        app:strokeWidth="1dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="12dp">
+    <!-- ae thêm tính năng thì vẽ trc vào đây -->
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:gravity="center_horizontal">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Portfolio Summary"
-                android:textColor="@android:color/white"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="12dp"
-                android:gravity="center"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:weightSum="3">
-
-                <!-- Invested -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Invested"
-                        android:textColor="#B0FFFFFF"
-                        android:textSize="14sp"/>
-
-                    <TextView
-                        android:id="@+id/tvTotalInvested"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="₫5,110,000"
-                        android:textColor="@android:color/white"
-                        android:textSize="16sp"
-                        android:textStyle="bold"/>
-                </LinearLayout>
-
-                <!-- Current -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Current"
-                        android:textColor="#B0FFFFFF"
-                        android:textSize="14sp"/>
-
-                    <TextView
-                        android:id="@+id/tvTotalCurrent"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="₫8,640,000"
-                        android:textColor="@android:color/white"
-                        android:textSize="16sp"
-                        android:textStyle="bold"/>
-                </LinearLayout>
-
-                <!-- P&L -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="P&amp;L"
-                        android:textColor="#B0FFFFFF"
-                        android:textSize="14sp"/>
-
-                    <TextView
-                        android:id="@+id/tvTotalPnL"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="+₫3,530,000"
-                        android:textColor="@android:color/holo_green_light"
-                        android:textSize="16sp"
-                        android:textStyle="bold"/>
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Danh sách cổ phiếu (nửa dưới) -->
     <androidx.recyclerview.widget.RecyclerView
         android:layout_marginTop="10dp"
         android:id="@+id/recyclerView"
