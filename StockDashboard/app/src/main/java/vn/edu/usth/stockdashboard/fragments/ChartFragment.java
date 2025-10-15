@@ -96,7 +96,6 @@ public class ChartFragment extends Fragment {
 
         lineChart = view.findViewById(R.id.line_chart);
         titleText = view.findViewById(R.id.titleText);
-        loadingText = view.findViewById(R.id.loadingText);
         chipGroup = view.findViewById(R.id.chipGroup);
 
         setupHandler();
@@ -168,6 +167,8 @@ public class ChartFragment extends Fragment {
         xAxis.setTextColor(Color.parseColor("#BDC3C7"));
         xAxis.setDrawGridLines(false);
         xAxis.setGranularity(1f);
+        xAxis.setLabelRotationAngle(-45f);
+        xAxis.setLabelCount(6, true);
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
@@ -316,29 +317,41 @@ public class ChartFragment extends Fragment {
                         }
 
                     } else {
+                        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                        SimpleDateFormat outputFormatShort = new SimpleDateFormat("MMM dd", Locale.US);
+                        SimpleDateFormat outputFormatLong = new SimpleDateFormat("MMM", Locale.US);
+
                         for (int i = 0; i < dataArray.length(); i++) {
                             JSONObject item = dataArray.getJSONObject(i);
                             try {
-                                String time = item.getString("time");
-                                if (time.length() >= 10) {
-                                    time = time.substring(5, 10).replace("-", " ");
-                                    String[] parts = time.split(" ");
-                                    if (parts.length == 2) {
-                                        String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-                                        int month = Integer.parseInt(parts[0]) - 1;
-                                        time = parts[1] + " " + (month >= 0 && month < 12 ? months[month] : "");
-                                    }
+                                String timeStr = item.getString("time");
+                                Date date = inputFormat.parse(timeStr);
+
+                                // Tùy theo khoảng thời gian mà định dạng nhãn khác nhau
+                                String label;
+                                switch (currentRange) {
+                                    case "1M":
+                                        label = outputFormatShort.format(date); // ví dụ: Oct 03
+                                        break;
+                                    case "3M":
+                                    case "6M":
+                                        label = outputFormatLong.format(date);  // ví dụ: Oct, Nov, Dec
+                                        break;
+                                    default:
+                                        label = outputFormatShort.format(date);
                                 }
+
                                 double close = item.getDouble("close");
                                 lastClose = close;
 
                                 entries.add(new Entry(i, (float) close));
-                                labels.add(time);
-                            } catch (JSONException e) {
+                                labels.add(label);
+
+                            } catch (JSONException | ParseException e) {
                                 Log.e(TAG, "Error parsing history item " + i + ": " + e.getMessage());
                             }
                         }
+
                     }
 
                     if (entries.isEmpty()) {
