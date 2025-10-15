@@ -6,24 +6,26 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.anychart.APIlib;
 import com.anychart.AnyChart;
 import com.anychart.AnyChartView;
 import com.anychart.chart.common.dataentry.DataEntry;
+import com.anychart.chart.common.dataentry.ValueDataEntry;
 import com.anychart.charts.Cartesian;
 import com.anychart.enums.TooltipPositionMode;
 import com.anychart.graphics.vector.SolidFill;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.Call;
@@ -42,8 +44,6 @@ public class ChartActivity extends BaseActivity {
     private AnyChartView anyChartView;
     private TextView titleText;
     private Button btnRefresh;
-    private ProgressBar progressBar;
-    private SwipeRefreshLayout swipeRefreshLayout;
 
     private String stockSymbol;
     private OkHttpClient client;
@@ -54,65 +54,58 @@ public class ChartActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chart);
 
-        initViews();
-        setupHandler();
-
-        client = new OkHttpClient();
-        stockSymbol = getIntent().getStringExtra("STOCK_SYMBOL");
-        if (stockSymbol == null || stockSymbol.isEmpty()) stockSymbol = "VNI";
-
-        Log.d(TAG, "Stock Symbol: " + stockSymbol);
-
-        showLoadingState();
-        fetchStockData();
-
-        btnRefresh.setOnClickListener(v -> {
-            showLoadingState();
-            fetchStockData();
-        });
-
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            fetchStockData();
-        });
-    }
-
-    private void initViews() {
         anyChartView = findViewById(R.id.any_chart_view);
         titleText = findViewById(R.id.titleText);
         btnRefresh = findViewById(R.id.btn_refresh);
-        progressBar = findViewById(R.id.progressBar);
-        swipeRefreshLayout = findViewById(R.id.swipeRefresh);
-    }
 
-    private void setupHandler() {
+        // Khởi tạo Handler với Main Looper
         uiHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(@NonNull Message msg) {
                 super.handleMessage(msg);
 
-                switch (msg.what) {
-                    case MSG_SHOW_CHART:
-                        Bundle data = msg.getData();
-                        List<DataEntry> seriesData =
-                                (List<DataEntry>) data.getSerializable("seriesData");
-                        double lastClose = data.getDouble("lastClose");
-                        showChart(seriesData, lastClose);
-                        hideLoadingState();
-                        break;
+                if (msg.what == MSG_SHOW_CHART) {
+                    Bundle data = msg.getData();
+                    List<DataEntry> seriesData = (List<DataEntry>) data.getSerializable("seriesData");
+                    double lastClose = data.getDouble("lastClose");
+                    showChart(seriesData, lastClose);
 
-                    case MSG_SHOW_ERROR:
-                        String errorMsg = msg.getData().getString("error");
-                        showErrorChart(errorMsg);
-                        hideLoadingState();
-                        Toast.makeText(ChartActivity.this, errorMsg, Toast.LENGTH_LONG).show();
-                        break;
+                } else if (msg.what == MSG_SHOW_ERROR) {
+                    String errorMsg = msg.getData().getString("error");
+                    showErrorChart(errorMsg);
+                    Toast.makeText(ChartActivity.this, errorMsg, Toast.LENGTH_LONG).show();
 
-                    case MSG_SHOW_LOADING:
-                        showLoadingState();
-                        break;
+                } else if (msg.what == MSG_SHOW_LOADING) {
+                    showLoadingChart();
                 }
             }
         };
+
+        client = new OkHttpClient();
+
+        // Lấy mã chứng chỉ từ Intent
+        stockSymbol = getIntent().getStringExtra("STOCK_SYMBOL");
+        if (stockSymbol == null || stockSymbol.isEmpty()) {
+            stockSymbol = "VNI";
+        }
+
+        Log.d(TAG, "Stock Symbol: " + stockSymbol);
+
+        showLoadingChart();
+
+        btnRefresh.setOnClickListener(v -> {
+            Log.d(TAG, "Refresh button clicked");
+            fetchStockData();
+        });
+
+        fetchStockData();
+    }
+
+    private void showLoadingChart() {
+        Cartesian loadingChart = AnyChart.line();
+        loadingChart.background().fill("#0e1117");
+        loadingChart.title("Loading stock data for " + stockSymbol + "...");
+        anyChartView.setChart(loadingChart);
     }
 
     private void fetchStockData() {
@@ -129,34 +122,99 @@ public class ChartActivity extends BaseActivity {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                sendErrorMessage("Connection Error: " + e.getMessage());
+                Log.e(TAG, "❌ Request failed: " + e.getMessage());
+
+                Message msg = Message.obtain();
+                msg.what = MSG_SHOW_ERROR;
+                Bundle data = new Bundle();
+                data.putString("error", "Connection Error: " + e.getMessage());
+                msg.setData(data);
+                uiHandler.sendMessage(msg);
             }
 
             @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response)
-                    throws IOException {
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (!response.isSuccessful()) {
-                    sendErrorMessage("API Error: " + response.code());
+                    Log.e(TAG, "❌ API Error: " + response.code());
+
+                    Message msg = Message.obtain();
+                    msg.what = MSG_SHOW_ERROR;
+                    Bundle data = new Bundle();
+                    data.putString("error", "API Error: " + response.code());
+                    msg.setData(data);
+                    uiHandler.sendMessage(msg);
                     response.close();
                     return;
                 }
 
                 try {
                     String jsonData = response.body().string();
-                    StockDataParser parser = new StockDataParser();
-                    StockDataParser.Result result = parser.parse(jsonData);
+                    Log.d(TAG, "📊 Response received: " + jsonData.substring(0, Math.min(200, jsonData.length())));
 
+                    JSONObject jsonObject = new JSONObject(jsonData);
+
+                    if (!jsonObject.has("data")) {
+                        Log.e(TAG, "❌ No 'data' field in response");
+                        sendErrorMessage("No data available");
+                        return;
+                    }
+
+                    JSONArray dataArray = jsonObject.getJSONArray("data");
+
+                    if (dataArray.length() == 0) {
+                        Log.e(TAG, "❌ Data array is empty");
+                        sendErrorMessage("Data is empty");
+                        return;
+                    }
+
+                    List<DataEntry> seriesData = new ArrayList<>();
+                    double lastClose = 0;
+
+                    for (int i = 0; i < dataArray.length(); i++) {
+                        JSONObject item = dataArray.getJSONObject(i);
+
+                        try {
+                            String time = item.getString("time");
+                            if (time.length() >= 10) {
+                                time = time.substring(5, 10).replace("-", " ");
+                                String[] parts = time.split(" ");
+                                if (parts.length == 2) {
+                                    String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+                                    int month = Integer.parseInt(parts[0]) - 1;
+                                    time = parts[1] + " " + (month >= 0 && month < 12 ? months[month] : "");
+                                }
+                            }
+
+                            double close = item.getDouble("close");
+                            lastClose = close;
+
+                            seriesData.add(new ValueDataEntry(time, close));
+                        } catch (JSONException e) {
+                            Log.e(TAG, "Error parsing item " + i + ": " + e.getMessage());
+                        }
+                    }
+
+                    if (seriesData.isEmpty()) {
+                        Log.e(TAG, "❌ No valid data entries parsed");
+                        sendErrorMessage("No valid data");
+                        return;
+                    }
+
+                    Log.d(TAG, "✅ Successfully parsed " + seriesData.size() + " data points");
+
+                    // Gửi message tới Handler để update UI
                     Message msg = Message.obtain();
                     msg.what = MSG_SHOW_CHART;
                     Bundle msgData = new Bundle();
-                    msgData.putSerializable("seriesData",
-                            (java.io.Serializable) result.seriesData);
-                    msgData.putDouble("lastClose", result.lastClose);
+                    msgData.putSerializable("seriesData", new ArrayList<>(seriesData));
+                    msgData.putDouble("lastClose", lastClose);
                     msg.setData(msgData);
                     uiHandler.sendMessage(msg);
 
                 } catch (JSONException e) {
-                    sendErrorMessage("JSON Parse Error: " + e.getMessage());
+                    Log.e(TAG, "❌ JSON Parse Error: " + e.getMessage());
+                    sendErrorMessage("JSON Parse Error");
                 } finally {
                     response.close();
                 }
@@ -173,16 +231,29 @@ public class ChartActivity extends BaseActivity {
         uiHandler.sendMessage(msg);
     }
 
+    private void showErrorChart(String message) {
+        Cartesian errorChart = AnyChart.line();
+        errorChart.background().fill("#0e1117");
+        errorChart.title("Error: " + message);
+        anyChartView.setChart(errorChart);
+        titleText.setText("Error loading chart");
+    }
+
     private void showChart(List<DataEntry> seriesData, double currentPrice) {
         try {
             APIlib.getInstance().setActiveAnyChartView(anyChartView);
+
             Cartesian cartesian = AnyChart.line();
 
             cartesian.background().fill("#0E1117");
             cartesian.animation(true);
             cartesian.title(stockSymbol + " – $" + String.format("%.2f", currentPrice));
+
             cartesian.crosshair().enabled(true);
             cartesian.tooltip().positionMode(TooltipPositionMode.POINT);
+            cartesian.xAxis(0).labels().fontColor("#bdc3c7");
+            cartesian.yAxis(0).labels().format("${%Value}").fontColor("#bdc3c7");
+            cartesian.legend(false);
 
             cartesian.line(seriesData)
                     .name("Close Price")
@@ -199,36 +270,30 @@ public class ChartActivity extends BaseActivity {
             titleText.setText(stockSymbol + " – $" + String.format("%.2f", currentPrice));
 
             Log.d(TAG, "✅ Chart rendered successfully");
+
         } catch (Exception e) {
-            sendErrorMessage("Chart Render Error: " + e.getMessage());
+            Log.e(TAG, "❌ Error rendering chart: " + e.getMessage());
+            Toast.makeText(this, "Chart Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-    }
-
-    private void showErrorChart(String message) {
-        Cartesian errorChart = AnyChart.line();
-        errorChart.background().fill("#0E1117");
-        errorChart.title("Error: " + message);
-        anyChartView.setChart(errorChart);
-        titleText.setText("Error loading chart");
-    }
-
-    private void showLoadingState() {
-        progressBar.setVisibility(android.view.View.VISIBLE);
-        anyChartView.setVisibility(android.view.View.INVISIBLE);
-        swipeRefreshLayout.setRefreshing(false);
-    }
-
-    private void hideLoadingState() {
-        progressBar.setVisibility(android.view.View.GONE);
-        anyChartView.setVisibility(android.view.View.VISIBLE);
-        swipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (anyChartView != null) anyChartView.setChart(null);
-        if (uiHandler != null) uiHandler.removeCallbacksAndMessages(null);
-        if (client != null) client.dispatcher().cancelAll();
+
+        // ✅ Clear chart
+        if (anyChartView != null) {
+            anyChartView.setChart(null);
+        }
+
+        // ✅ Stop handler
+        if (uiHandler != null) {
+            uiHandler.removeCallbacksAndMessages(null);
+        }
+
+        // ✅ Stop API calls
+        if (client != null) {
+            client.dispatcher().cancelAll();
+        }
     }
 }
