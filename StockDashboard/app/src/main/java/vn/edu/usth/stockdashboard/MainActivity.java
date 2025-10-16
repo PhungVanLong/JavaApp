@@ -1,6 +1,8 @@
 package vn.edu.usth.stockdashboard;
 
 import android.os.Bundle;
+import android.view.Window;
+
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -23,6 +25,9 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Window window = getWindow();
+        window.setNavigationBarColor(getResources().getColor(R.color.black));
 
         currentUsername = getIntent().getStringExtra("USERNAME");
         if (currentUsername == null || currentUsername.isEmpty()) {

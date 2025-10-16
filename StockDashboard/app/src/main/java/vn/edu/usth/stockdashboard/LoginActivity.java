@@ -26,13 +26,6 @@ public class LoginActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_layout);
 
-//        if (getSupportActionBar() != null) {
-//            getSupportActionBar().hide();
-//        }
-//
-//        // Setup transparent gesture bar
-//        setupTransparentGestureBar();
-
 // setup
         username = findViewById(R.id.usernameText);
         password = findViewById(R.id.passwordText);
@@ -77,14 +70,4 @@ public class LoginActivity extends BaseActivity {
 
 
     }
-
-//    private void setupTransparentGestureBar() {
-//        // Edge-to-edge
-//        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-//
-//        // System bars trong suốt
-//        getWindow().setStatusBarColor(Color.TRANSPARENT);
-//        getWindow().setNavigationBarColor(Color.TRANSPARENT);
-//    }
-
 }
