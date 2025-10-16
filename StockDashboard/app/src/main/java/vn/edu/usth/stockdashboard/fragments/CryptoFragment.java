@@ -6,9 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.*;
 import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -19,11 +17,9 @@ import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.adapter.CryptoAdapter;
 import vn.edu.usth.stockdashboard.data.model.CryptoItem;
 import vn.edu.usth.stockdashboard.data.sse.service.CryptoSSEService;
+
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class CryptoFragment extends Fragment {
 
@@ -40,15 +36,10 @@ public class CryptoFragment extends Fragment {
             long timestamp = intent.getLongExtra("timestamp", 0);
 
             String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-                    .format(new Date(timestamp * 1000)); // timestamp là giây
+                    .format(new Date(timestamp * 1000));
 
             CryptoItem item = new CryptoItem(symbol, price, time);
-
-            requireActivity().runOnUiThread(() -> {
-                adapter.updateItem(item);
-                progressBar.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
-            });
+            requireActivity().runOnUiThread(() -> adapter.updateItem(item));
         }
     };
 
@@ -64,7 +55,11 @@ public class CryptoFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
 
-        // Đăng ký BroadcastReceiver
+        // Ẩn luôn progress bar - hiển thị recycler ngay
+        progressBar.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.VISIBLE);
+
+        // Đăng ký nhận broadcast
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             requireActivity().registerReceiver(
                     cryptoReceiver,
@@ -73,9 +68,8 @@ public class CryptoFragment extends Fragment {
             );
         }
 
-        // Bắt đầu service với danh sách 20 mã
+        // Gọi SSE Service
         String symbols = "btcusdt,ethusdt,bnbusdt,adausdt,xrpusdt,solusdt,dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt,filusdt,nearusdt,icpusdt,vetusdt";
-
         Intent sseIntent = new Intent(requireContext(), CryptoSSEService.class);
         sseIntent.putExtra("symbols", symbols);
         requireContext().startService(sseIntent);
