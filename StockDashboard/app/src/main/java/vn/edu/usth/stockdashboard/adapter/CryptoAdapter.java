@@ -16,13 +16,20 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
 
     public CryptoAdapter(List<CryptoItem> cryptoList) {
         this.cryptoList = cryptoList;
+        setHasStableIds(true); // ✅ Enable stable IDs
+    }
+
+    @Override
+    public long getItemId(int position) {
+        // ✅ Return unique ID based on symbol
+        return cryptoList.get(position).getSymbol().hashCode();
     }
 
     public void updateItem(CryptoItem item) {
         for (int i = 0; i < cryptoList.size(); i++) {
             if (cryptoList.get(i).getSymbol().equalsIgnoreCase(item.getSymbol())) {
                 cryptoList.set(i, item);
-                notifyItemChanged(i);
+                notifyItemChanged(i, item); // ✅ Use payload to avoid full rebind
                 return;
             }
         }
@@ -39,11 +46,31 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+        onBindViewHolder(holder, position, null);
+    }
+
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position, List<Object> payloads) {
         CryptoItem item = cryptoList.get(position);
 
-        // Set symbol
-        holder.ctSymbol.setText(item.getSymbol().toUpperCase().replace("USDT", "/USDT"));
+        // ✅ If payload exists, only update changed data
+        if (payloads != null && !payloads.isEmpty()) {
+            updateItemData(holder, item);
+            return;
+        }
 
+        // Full bind
+        holder.ctSymbol.setText(item.getSymbol().toUpperCase().replace("USDT", "/USDT"));
+        holder.ctTime.setText(item.getTime());
+
+        if (holder.ctVolume != null) {
+            holder.ctVolume.setText("Vol: N/A");
+        }
+
+        updateItemData(holder, item);
+    }
+
+    private void updateItemData(ViewHolder holder, CryptoItem item) {
         // Set price with background highlight
         holder.ctPrice.setText(String.format("$%.2f", item.getPrice()));
 
@@ -63,14 +90,14 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         int textColor;
 
         if (item.isPriceUp()) {
-            backgroundColor = Color.parseColor("#4CAF50"); // Green background
-            textColor = Color.parseColor("#4CAF50");       // Green text
+            backgroundColor = Color.parseColor("#4CAF50");
+            textColor = Color.parseColor("#4CAF50");
         } else if (item.isPriceDown()) {
-            backgroundColor = Color.parseColor("#F44336"); // Red background
-            textColor = Color.parseColor("#F44336");       // Red text
+            backgroundColor = Color.parseColor("#F44336");
+            textColor = Color.parseColor("#F44336");
         } else {
-            backgroundColor = Color.parseColor("#9E9E9E"); // Gray background
-            textColor = Color.parseColor("#9E9E9E");       // Gray text
+            backgroundColor = Color.parseColor("#9E9E9E");
+            textColor = Color.parseColor("#9E9E9E");
         }
 
         // Set background for price with rounded corners
@@ -81,14 +108,6 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
 
         // Set text color for change percent
         holder.ctChange.setTextColor(textColor);
-
-        // Set time
-        holder.ctTime.setText(item.getTime());
-
-        // Set volume if available
-        if (holder.ctVolume != null) {
-            holder.ctVolume.setText("Vol: N/A");
-        }
     }
 
     @Override
@@ -106,6 +125,10 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
             ctChange = itemView.findViewById(R.id.ctChange);
             ctTime = itemView.findViewById(R.id.ctTime);
 //            ctVolume = itemView.findViewById(R.id.ctVolume);
+
+            // ✅ Disable change animations on TextViews
+            ctPrice.setHasTransientState(false);
+            ctChange.setHasTransientState(false);
         }
     }
 }

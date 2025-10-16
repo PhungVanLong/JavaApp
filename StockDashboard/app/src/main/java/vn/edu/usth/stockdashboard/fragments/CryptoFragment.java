@@ -35,7 +35,21 @@ public class CryptoFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_crypto, container, false);
 
         recyclerView = view.findViewById(R.id.recyclerView_crypto);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // ✅ Optimize RecyclerView
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true); // Items have fixed size
+        recyclerView.setItemViewCacheSize(20); // Cache more items
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+
+        // ✅ Disable change animations to prevent flickering
+        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
+        if (animator instanceof SimpleItemAnimator) {
+            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
+        }
+
         adapter = new CryptoAdapter(cryptoList);
         recyclerView.setAdapter(adapter);
 

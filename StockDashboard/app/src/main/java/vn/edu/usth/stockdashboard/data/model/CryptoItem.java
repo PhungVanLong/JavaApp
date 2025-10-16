@@ -42,4 +42,18 @@ public class CryptoItem {
     public boolean isPriceDown() {
         return changePercent < 0;
     }
+
+    // ✅ Override equals and hashCode for stable comparison
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CryptoItem that = (CryptoItem) o;
+        return symbol.equalsIgnoreCase(that.symbol);
+    }
+
+    @Override
+    public int hashCode() {
+        return symbol.toLowerCase().hashCode();
+    }
 }
