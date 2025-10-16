@@ -4,17 +4,25 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
 import vn.edu.usth.stockdashboard.R;
-import vn.edu.usth.stockdashboard.StockItem;
+import vn.edu.usth.stockdashboard.data.model.StockItem;
 
-public class PortfolioAdapter extends RecyclerView.Adapter<PortfolioAdapter.ViewHolder> {
+public class PortfolioAdapter extends RecyclerView.Adapter<PortfolioAdapter.PortfolioViewHolder> {
 
     private List<StockItem> stockList;
+    private String username; // thêm dòng này
+
+    // ✅ Constructor mới (2 tham số)
+    public PortfolioAdapter(List<StockItem> stockList, String username) {
+        this.stockList = stockList;
+        this.username = username;
+    }
 
     public PortfolioAdapter(List<StockItem> stockList) {
         this.stockList = stockList;
@@ -22,37 +30,42 @@ public class PortfolioAdapter extends RecyclerView.Adapter<PortfolioAdapter.View
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_stock_portfolio, parent, false);
-        return new ViewHolder(view);
+    public PortfolioViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_stock_portfolio, parent, false); // dùng file XML bạn vừa gửi
+        return new PortfolioViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        StockItem stock = stockList.get(position);
-        holder.symbolText.setText(stock.getSymbol());
-        holder.priceText.setText(String.format("%.2f", stock.getPrice()));
-        holder.volumeText.setText(String.format("Vol: %d", stock.getVolume()));
+    public void onBindViewHolder(@NonNull PortfolioViewHolder holder, int position) {
+        StockItem item = stockList.get(position);
+
+        holder.tvTicker.setText(item.getSymbol());
+        holder.tvPrice.setText(String.format("%.2f USD", item.getPrice()));
+        holder.tvInvested.setText("Invested: 1000"); // bạn có thể thay bằng dữ liệu thật
+        holder.tvCurrent.setText(String.format("Current: %.0f", item.getPrice() * 10)); // ví dụ
+        double pnl = item.getPrice() * 10 - 1000;
+        holder.tvPnL.setText(String.format("PnL: %.0f", pnl));
+        holder.tvPnL.setTextColor(pnl >= 0 ?
+                holder.itemView.getResources().getColor(android.R.color.holo_green_light) :
+                holder.itemView.getResources().getColor(android.R.color.holo_red_light));
     }
 
     @Override
     public int getItemCount() {
-        return stockList != null ? stockList.size() : 0;
+        return stockList.size();
     }
 
-    public void updateData(List<StockItem> newList) {
-        this.stockList = newList;
-        notifyDataSetChanged();
-    }
+    static class PortfolioViewHolder extends RecyclerView.ViewHolder {
+        TextView tvTicker, tvPrice, tvInvested, tvCurrent, tvPnL;
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView symbolText, priceText, volumeText;
-
-        public ViewHolder(@NonNull View itemView) {
+        public PortfolioViewHolder(@NonNull View itemView) {
             super(itemView);
-            symbolText = itemView.findViewById(R.id.textSymbol);
-            priceText = itemView.findViewById(R.id.textPrice);
-            volumeText = itemView.findViewById(R.id.textVolume);
+            tvTicker = itemView.findViewById(R.id.tvTicker);
+            tvPrice = itemView.findViewById(R.id.tvPrice);
+            tvInvested = itemView.findViewById(R.id.tvInvested);
+            tvCurrent = itemView.findViewById(R.id.tvCurrent);
+            tvPnL = itemView.findViewById(R.id.tvPnL);
         }
     }
 }

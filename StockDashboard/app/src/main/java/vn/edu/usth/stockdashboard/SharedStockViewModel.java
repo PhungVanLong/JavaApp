@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import java.util.List;
-import vn.edu.usth.stockdashboard.StockItem;
+import vn.edu.usth.stockdashboard.data.model.StockItem;
 
 public class SharedStockViewModel extends ViewModel {
 

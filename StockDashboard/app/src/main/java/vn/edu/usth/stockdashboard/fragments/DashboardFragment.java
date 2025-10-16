@@ -25,6 +25,8 @@ import vn.edu.usth.stockdashboard.adapter.StockAdapter;
 import vn.edu.usth.stockdashboard.data.sse.StockData;
 import vn.edu.usth.stockdashboard.data.sse.service.StockSseService;
 import vn.edu.usth.stockdashboard.viewmodel.SharedStockViewModel;
+import vn.edu.usth.stockdashboard.StockDialog;
+
 
 public class DashboardFragment extends Fragment implements StockSseService.SseUpdateListener {
 
@@ -41,6 +43,7 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
 
     // Cờ để kiểm tra đã có dữ liệu ban đầu chưa
     private boolean hasInitialData = false;
+    private SharedStockViewModel sharedStockViewModel;
 
     private List<String> symbols = Arrays.asList(
             "ACB", "BID", "SSI", "VPB", "HPG", "VCB", "FPT", "VIC", "MSN", "MWG", "TCB"
