@@ -7,6 +7,12 @@
         />
 
     <item
+        android:id="@+id/nav_crypto"
+        android:icon="@drawable/crypto_icon"
+        android:title="Crypto"
+        />
+
+    <item
         android:id="@+id/nav_portfolio"
         android:icon="@drawable/portfolio_icon"
         android:title="Portfolio"
