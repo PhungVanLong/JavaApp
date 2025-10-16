@@ -17,6 +17,7 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 import vn.edu.usth.stockdashboard.data.DatabaseHelper;
+import vn.edu.usth.stockdashboard.data.model.StockItem;
 
 public class PortfolioAdapter extends RecyclerView.Adapter<PortfolioAdapter.ViewHolder> {
     private List<StockItem> stockList;

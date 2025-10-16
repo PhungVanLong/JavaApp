@@ -1,6 +1,7 @@
 package vn.edu.usth.stockdashboard;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Window;
 import android.widget.TextView;
 
@@ -45,12 +46,12 @@ public class MainActivity extends BaseActivity {
         headerTitle = findViewById(R.id.header_title);
 
         if (savedInstanceState == null) {
-            // init các fragment theo 1 2 3 4 hiện thị cái dashboard trc
+            // Add all fragments initially, dashboard is visible by default
             fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, accountFragment, "4").hide(accountFragment)
-                    .add(R.id.fragment_container, portfolioFragment, "3").hide(portfolioFragment)
                     .add(R.id.fragment_container, dashboardFragment, "1") // Dashboard visible
                     .add(R.id.fragment_container, cryptoFragment, "2").hide(cryptoFragment)
+                    .add(R.id.fragment_container, portfolioFragment, "3").hide(portfolioFragment)
+                    .add(R.id.fragment_container, accountFragment, "4").hide(accountFragment)
                     .commit();
             activeFragment = dashboardFragment;
             updateHeaderTitle("Dashboard");
@@ -67,7 +68,8 @@ public class MainActivity extends BaseActivity {
                 loadFragment(dashboardFragment);
                 updateHeaderTitle("Dashboard");
             } else if (itemId == R.id.nav_crypto) {
-                loadFragment(accountFragment);
+                loadFragment(cryptoFragment);
+
                 updateHeaderTitle("Crypto");
             } else if (itemId == R.id.nav_portfolio) {
                 loadFragment(portfolioFragment);

@@ -1,4 +1,4 @@
-package vn.edu.usth.stockdashboard;
+package vn.edu.usth.stockdashboard.data.model;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
