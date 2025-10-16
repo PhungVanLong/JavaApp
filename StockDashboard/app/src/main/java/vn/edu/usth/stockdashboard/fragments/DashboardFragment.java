@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,12 +19,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import vn.edu.usth.stockdashboard.StockDialog;
 import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.StockItem;
 import vn.edu.usth.stockdashboard.adapter.StockAdapter;
 import vn.edu.usth.stockdashboard.data.sse.StockData;
 import vn.edu.usth.stockdashboard.data.sse.service.StockSseService;
+import vn.edu.usth.stockdashboard.viewmodel.SharedStockViewModel;
 
 public class DashboardFragment extends Fragment implements StockSseService.SseUpdateListener {
 
@@ -62,6 +63,9 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
             hasInitialData = savedInstanceState.getBoolean(KEY_HAS_DATA, false);
             Log.d(TAG, "📦 Restored state - hasInitialData: " + hasInitialData);
         }
+
+        // ✅ Khởi tạo ViewModel chia sẻ giữa các fragment
+        sharedStockViewModel = new ViewModelProvider(requireActivity()).get(SharedStockViewModel.class);
 
         // Khởi tạo SSE service
         sseService = new StockSseService(symbols, this);
@@ -191,6 +195,8 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
 
             if (updatedCount > 0) {
                 Log.d(TAG, "🔄 Silent update: " + updatedCount + " items changed");
+                sharedStockViewModel.setStockList(new ArrayList<>(stockList));
+                Log.d(TAG, "🔄 Updated " + updatedCount + " items & synced with ViewModel");
             }
         });
     }

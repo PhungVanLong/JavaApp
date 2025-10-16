@@ -1,98 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
-    android:paddingTop="12dp"
-    android:paddingBottom="12dp"
-    android:layout_marginBottom="1dp"
-    android:background="#1AFFFFFF"> <LinearLayout
-    android:id="@+id/left_column"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:layout_alignParentStart="true"
-    android:layout_centerVertical="true">
-
-    <TextView
-        android:id="@+id/tvTicker"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="AAPL"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"/>
-
-    <TextView
-        android:id="@+id/tvInvested"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Invested: 1000"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"/>
-</LinearLayout>
-
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="6dp"
+    app:strokeColor="#99FFFFFF"
+    app:strokeWidth="2dp"
+    app:cardBackgroundColor="#66000000">
 
     <LinearLayout
-        android:id="@+id/right_column"
-        android:layout_width="wrap_content"
+        android:layout_width="170dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="end"
-        android:layout_alignParentEnd="true"
-        android:layout_centerVertical="true">
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvTicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AAPL"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"/>
+
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="175.3 USD"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"/>
+
+        <TextView
+            android:id="@+id/tvInvested"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Invested: 1000"
+            android:textSize="14sp"
+            android:textColor="@android:color/white"/>
+
+        <TextView
+            android:id="@+id/tvCurrent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Current: 1200"
+            android:textSize="14sp"
+            android:textColor="@android:color/white"/>
 
         <TextView
             android:id="@+id/tvPnL"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="P&amp;L: +200"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/holo_green_dark"/> <TextView
-        android:id="@+id/tvCurrent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Current: 1200"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"/>
+            android:text="PnL: +200"
+            android:textColor="@android:color/holo_green_light"
+            android:textSize="14sp"
+            android:textStyle="bold"/>
+
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvPrice"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="175.3 USD"
-        android:textSize="16sp"
-        android:textStyle="normal"
-        android:textColor="@android:color/white"
-        android:layout_centerVertical="true"
-        android:layout_toStartOf="@id/right_column"
-        android:layout_toEndOf="@id/left_column"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:gravity="center_horizontal"
-        android:minWidth="60dp"
-        />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#22FFFFFF"
-        android:layout_below="@id/left_column"
-        android:layout_marginTop="12dp"
-        android:visibility="gone"/>
-
-    <Button
-        android:id="@+id/btnDelete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Delete"
-        android:textColor="@android:color/white"
-        android:backgroundTint="@color/yellow"
-        android:layout_centerInParent="true"
-        />
-
-
-</RelativeLayout>
+</com.google.android.material.card.MaterialCardView>
