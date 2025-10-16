@@ -20,12 +20,23 @@ public class StockItem {
     private double high;
     private double low;
 
+    private double investedValue; // Giá trị đã đầu tư
+    private double currentValue;  // Giá trị hiện tại của khoản đầu tư
+    private int quantity; // Số lượng cổ phiếu nắm giữ
+
+
     // Constructor for creating initial placeholders
     public StockItem(String symbol) {
         this.symbol = symbol;
         this.time = "--:--:--";
+        this.quantity = 0;
     }
 
+    public StockItem(String symbol, double investedValue, double currentValue) {
+        this(symbol); // Khởi tạo các trường market data mặc định
+        this.investedValue = investedValue;
+        this.currentValue = currentValue;
+    }
     // The single, correct way to create a fully populated StockItem
     public static StockItem fromStockSymbolData(StockSymbolData symbolData) {
         StockItem item = new StockItem(symbolData.getSymbol());
@@ -96,5 +107,28 @@ public class StockItem {
 
     public double getOpen() {
         return open;
+    }
+    public double getInvestedValue() {
+        return investedValue;
+    }
+
+    public double getCurrentValue() {
+        return currentValue;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+    // Setters để cập nhật Portfolio Data
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setInvestedValue(double investedValue) {
+        this.investedValue = investedValue;
+    }
+
+    public void setCurrentValue(double currentValue) {
+        this.currentValue = currentValue;
     }
 }

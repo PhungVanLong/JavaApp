@@ -12,14 +12,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.data.DatabaseHelper;
 import vn.edu.usth.stockdashboard.fragments.PortfolioFragment;
 
-public class AddStockDialog extends DialogFragment {
+public class StockDialog extends DialogFragment {
 
-    public static AddStockDialog newInstance(StockItem stockItem, String username) {
-        AddStockDialog dialog = new AddStockDialog();
+    public static StockDialog newInstance(StockItem stockItem, String username) {
+        StockDialog dialog = new StockDialog();
         Bundle args = new Bundle();
         args.putString("symbol", stockItem.getSymbol());
         args.putDouble("price", stockItem.getPrice());
