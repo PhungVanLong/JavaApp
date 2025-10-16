@@ -19,7 +19,7 @@ import android.database.Cursor;
 import vn.edu.usth.stockdashboard.PortfolioAdapter;
 import vn.edu.usth.stockdashboard.R;
 
-import vn.edu.usth.stockdashboard.StockItem;
+import vn.edu.usth.stockdashboard.data.model.StockItem;
 
 public class PortfolioFragment extends Fragment {
 

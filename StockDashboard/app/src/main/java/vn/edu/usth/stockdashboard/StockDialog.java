@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import vn.edu.usth.stockdashboard.data.DatabaseHelper;
+import vn.edu.usth.stockdashboard.data.model.StockItem;
 import vn.edu.usth.stockdashboard.fragments.PortfolioFragment;
 
 public class StockDialog extends DialogFragment {

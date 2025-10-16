@@ -34,7 +34,10 @@
             android:exported="true"
             android:label=""/>
 
-       
+
+        <service
+            android:name=".data.sse.service.CryptoSSEService"
+            android:exported="false" />
 
 
     </application>

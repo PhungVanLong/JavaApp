@@ -1,6 +1,7 @@
 package vn.edu.usth.stockdashboard;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Window;
 
 import androidx.fragment.app.Fragment;
@@ -43,10 +44,10 @@ public class MainActivity extends BaseActivity {
         if (savedInstanceState == null) {
             // Add all fragments initially, dashboard is visible by default
             fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, accountFragment, "4").hide(accountFragment)
-                    .add(R.id.fragment_container, portfolioFragment, "3").hide(portfolioFragment)
                     .add(R.id.fragment_container, dashboardFragment, "1") // Dashboard visible
                     .add(R.id.fragment_container, cryptoFragment, "2").hide(cryptoFragment)
+                    .add(R.id.fragment_container, portfolioFragment, "3").hide(portfolioFragment)
+                    .add(R.id.fragment_container, accountFragment, "4").hide(accountFragment)
                     .commit();
             activeFragment = dashboardFragment;
         }
@@ -61,7 +62,7 @@ public class MainActivity extends BaseActivity {
             if (itemId == R.id.nav_dashboard) {
                 loadFragment(dashboardFragment);
             } else if (itemId == R.id.nav_crypto) {
-                loadFragment(accountFragment);
+                loadFragment(cryptoFragment);
             } else if (itemId == R.id.nav_portfolio) {
                 loadFragment(portfolioFragment);
             } else if (itemId == R.id.nav_account) {
@@ -73,6 +74,7 @@ public class MainActivity extends BaseActivity {
 
     private void loadFragment(Fragment fragment) {
         if (activeFragment != fragment) {
+            Log.d("FRAGMENT_DEBUG", "Switching to: " + fragment.getClass().getSimpleName());
             fragmentManager.beginTransaction()
                     .hide(activeFragment)
                     .show(fragment)
@@ -80,4 +82,5 @@ public class MainActivity extends BaseActivity {
             activeFragment = fragment;
         }
     }
+
 }
