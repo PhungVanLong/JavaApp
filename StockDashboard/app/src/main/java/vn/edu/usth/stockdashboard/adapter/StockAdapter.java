@@ -11,7 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 import vn.edu.usth.stockdashboard.R;
-import vn.edu.usth.stockdashboard.StockItem;
+import vn.edu.usth.stockdashboard.data.model.StockItem;
 
 public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHolder> {
 

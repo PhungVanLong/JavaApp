@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import vn.edu.usth.stockdashboard.R;
-import vn.edu.usth.stockdashboard.StockItem;
+import vn.edu.usth.stockdashboard.data.model.StockItem;
 import vn.edu.usth.stockdashboard.adapter.StockAdapter;
 import vn.edu.usth.stockdashboard.data.sse.StockData;
 import vn.edu.usth.stockdashboard.data.sse.service.StockSseService;

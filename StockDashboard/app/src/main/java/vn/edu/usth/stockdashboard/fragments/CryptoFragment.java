@@ -1,66 +1,85 @@
 package vn.edu.usth.stockdashboard.fragments;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
-
+import android.view.*;
+import android.widget.ProgressBar;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import vn.edu.usth.stockdashboard.R;
+import vn.edu.usth.stockdashboard.adapter.CryptoAdapter;
+import vn.edu.usth.stockdashboard.data.model.CryptoItem;
+import vn.edu.usth.stockdashboard.data.sse.service.CryptoSSEService;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link CryptoFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 public class CryptoFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private RecyclerView recyclerView;
+    private ProgressBar progressBar;
+    private CryptoAdapter adapter;
+    private final List<CryptoItem> cryptoList = new ArrayList<>();
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private final BroadcastReceiver cryptoReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String symbol = intent.getStringExtra("symbol");
+            double price = intent.getDoubleExtra("price", 0);
+            long timestamp = intent.getLongExtra("timestamp", 0);
 
-    public CryptoFragment() {
-        // Required empty public constructor
-    }
+            String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                    .format(new Date(timestamp * 1000));
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment CryptoFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static CryptoFragment newInstance(String param1, String param2) {
-        CryptoFragment fragment = new CryptoFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            CryptoItem item = new CryptoItem(symbol, price, time);
+            requireActivity().runOnUiThread(() -> adapter.updateItem(item));
         }
+    };
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_crypto, container, false);
+
+        progressBar = view.findViewById(R.id.crypto_progress_bar);
+        recyclerView = view.findViewById(R.id.recyclerView_crypto);
+
+        adapter = new CryptoAdapter(cryptoList);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(adapter);
+
+        // Ẩn luôn progress bar - hiển thị recycler ngay
+        progressBar.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.VISIBLE);
+
+        // Đăng ký nhận broadcast
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            requireActivity().registerReceiver(
+                    cryptoReceiver,
+                    new IntentFilter("CRYPTO_UPDATE"),
+                    Context.RECEIVER_NOT_EXPORTED
+            );
+        }
+
+        // Gọi SSE Service
+        String symbols = "btcusdt,ethusdt,bnbusdt,adausdt,xrpusdt,solusdt,dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt,filusdt,nearusdt,icpusdt,vetusdt";
+        Intent sseIntent = new Intent(requireContext(), CryptoSSEService.class);
+        sseIntent.putExtra("symbols", symbols);
+        requireContext().startService(sseIntent);
+
+        return view;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_crypto, container, false);
+    public void onDestroyView() {
+        super.onDestroyView();
+        requireActivity().unregisterReceiver(cryptoReceiver);
     }
 }
