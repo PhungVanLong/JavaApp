@@ -3,10 +3,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:padding="8dp"
+    >
 
     <!-- ae thêm tính năng thì vẽ trc vào đây -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginBottom="8dp">
 
+        <Button
+            android:id="@+id/btnRefreshPortfolio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Refresh"
+            android:backgroundTint="@color/yellow"
+            android:textColor="@android:color/black"
+            android:layout_marginEnd="6dp"/>
+
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_marginTop="10dp"

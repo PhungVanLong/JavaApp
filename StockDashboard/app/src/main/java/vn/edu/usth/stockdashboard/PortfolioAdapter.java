@@ -1,21 +1,34 @@
 package vn.edu.usth.stockdashboard;
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
+import vn.edu.usth.stockdashboard.data.DatabaseHelper;
+
 public class PortfolioAdapter extends RecyclerView.Adapter<PortfolioAdapter.ViewHolder> {
+    private List<StockItem> stockList;
+    private String currentUsername; // username để thao tác DB
 
-    private List<Stock> stockList;
+    private final DecimalFormat currencyFormat = new DecimalFormat("#,##0.00");
+    private final DecimalFormat pnlFormat = new DecimalFormat("+#,##0.00;-#,##0.00");
 
-    public PortfolioAdapter(List<Stock> stockList) {
+    // Constructor nhận List<StockItem> và username
+    public PortfolioAdapter(List<StockItem> stockList, String username) {
         this.stockList = stockList;
+        this.currentUsername = username;
     }
 
     @NonNull
@@ -28,31 +41,62 @@ public class PortfolioAdapter extends RecyclerView.Adapter<PortfolioAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Stock stock = stockList.get(position);
+        StockItem stockItem = stockList.get(position);
+        Context context = holder.itemView.getContext();
 
-        holder.ticker.setText(stock.getTicker());
-        holder.price.setText(stock.getPrice());
-        holder.invested.setText("Invested: " + stock.getInvested());
-        holder.current.setText("Current: " + stock.getCurrent());
-        holder.pnl.setText("P&L: " + stock.getPnl());
+        holder.ticker.setText(stockItem.getSymbol());
+        holder.price.setText(currencyFormat.format(stockItem.getPrice()) + " USD");
 
-        // Màu P&L: lỗ = đỏ, lãi = xanh
-        if (stock.getPnl().startsWith("-")) {
-            holder.pnl.setTextColor(holder.itemView.getResources()
-                    .getColor(android.R.color.holo_red_dark));
+        double investedValue = stockItem.getInvestedValue();
+        double currentValue = stockItem.getCurrentValue();
+
+        holder.invested.setText("Invested: " + currencyFormat.format(investedValue) + " USD");
+        holder.current.setText("Current: " + currencyFormat.format(currentValue) + " USD");
+
+        double pnlValue = currentValue - investedValue;
+        holder.pnl.setText("P&L: " + pnlFormat.format(pnlValue) + " USD");
+
+        if (pnlValue < 0) {
+            holder.pnl.setTextColor(ContextCompat.getColor(context, android.R.color.holo_red_dark));
+        } else if (pnlValue > 0) {
+            holder.pnl.setTextColor(ContextCompat.getColor(context, android.R.color.holo_green_dark));
         } else {
-            holder.pnl.setTextColor(holder.itemView.getResources()
-                    .getColor(android.R.color.holo_green_dark));
+            holder.pnl.setTextColor(ContextCompat.getColor(context, android.R.color.white));
         }
+
+        // Delete button listener
+        holder.btnDelete.setOnClickListener(v -> {
+            new AlertDialog.Builder(context)
+                    .setTitle("Remove Stock")
+                    .setMessage("Are you sure you want to delete " + stockItem.getSymbol() + " from portfolio?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        DatabaseHelper db = new DatabaseHelper(context);
+                        boolean success = db.deletePortfolioItem(currentUsername, stockItem.getSymbol());
+                        if (success) {
+                            int pos = holder.getAdapterPosition();
+                            if (pos != RecyclerView.NO_POSITION) {
+                                stockList.remove(pos);
+                                notifyItemRemoved(pos);
+                                notifyItemRangeChanged(pos, stockList.size());
+                                Toast.makeText(context, "Deleted " + stockItem.getSymbol(), Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(context, "Failed to delete", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
     }
 
     @Override
     public int getItemCount() {
-        return stockList.size();
+        return stockList == null ? 0 : stockList.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView ticker, price, invested, current, pnl;
+        Button btnDelete;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -61,6 +105,7 @@ public class PortfolioAdapter extends RecyclerView.Adapter<PortfolioAdapter.View
             invested = itemView.findViewById(R.id.tvInvested);
             current = itemView.findViewById(R.id.tvCurrent);
             pnl = itemView.findViewById(R.id.tvPnL);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 }

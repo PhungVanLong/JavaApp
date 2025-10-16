@@ -22,9 +22,9 @@
 
     <RelativeLayout
         android:layout_marginTop="100dp"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-       android:layout_marginStart="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
         android:layout_marginEnd="30dp"
         >
         <ImageView
@@ -36,17 +36,19 @@
             android:layout_centerVertical="true"
             app:tint="@android:color/white" />
         <EditText
-        android:id="@+id/usernameText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:autofillHints="username"
-        android:ems="10"
-        android:hint="@string/hint_user"
-        android:textColorHint="#BDBCBC"
-        android:textStyle="italic"
+            android:id="@+id/usernameText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="username"
+            android:hint="@string/hint_user"
+            android:textColorHint="#BDBCBC"
+            android:textStyle="italic"
             android:textColor="@color/white"
-        android:gravity="center"
-        /> </RelativeLayout>
+            android:gravity="center"
+            android:maxLength="20"
+            android:singleLine="true"
+            />
+    </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -69,14 +71,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:autofillHints="password"
-            android:ems="10"
             android:gravity="center"
             android:textColor="@color/white"
             android:hint="@string/hint_password"
             android:inputType="textPersonName"
             android:textColorHint="#BDBCBC"
-            android:textStyle="italic" />
+            android:textStyle="italic"
+            android:maxLength="20"
+            android:singleLine="true"
+            />
     </RelativeLayout>
+
     <Button
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
