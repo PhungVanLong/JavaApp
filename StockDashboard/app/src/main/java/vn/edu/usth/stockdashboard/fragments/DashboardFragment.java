@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import vn.edu.usth.stockdashboard.StockDialog;
 import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.StockItem;
 import vn.edu.usth.stockdashboard.adapter.StockAdapter;
@@ -35,6 +36,7 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
     private List<StockItem> stockList = new ArrayList<>();
     private StockSseService sseService;
     private ProgressBar progressBar;
+    private String currentUsername;
 
     // Cờ để kiểm tra đã có dữ liệu ban đầu chưa
     private boolean hasInitialData = false;
@@ -46,6 +48,14 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Lấy username từ Activity
+        if (getActivity() != null) {
+            currentUsername = getActivity().getIntent().getStringExtra("USERNAME");
+            if (currentUsername == null || currentUsername.isEmpty()) {
+                currentUsername = "test";
+            }
+        }
 
         // Restore state nếu có
         if (savedInstanceState != null) {
@@ -90,21 +100,41 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
             for (String symbol : symbols) {
                 stockList.add(new StockItem(symbol));
             }
-            Log.d(TAG, "📋 Initialized stock list with " + stockList.size() + " items");
+            Log.d(TAG, "Initialized stock list with " + stockList.size() + " items");
         } else {
-            Log.d(TAG, "♻️ Reusing existing stock list with " + stockList.size() + " items");
+            Log.d(TAG, "Reusing existing stock list with " + stockList.size() + " items");
         }
     }
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         stockAdapter = new StockAdapter(stockList, item -> {
-            // Mở ChartFragment với mã chứng khoán được click
-            openChartFragment(item.getSymbol());
+            // Click vào item sẽ hiện menu: View Chart hoặc Add to Portfolio
+            showStockOptionsDialog(item);
         });
         recyclerView.setAdapter(stockAdapter);
     }
 
+    private void showStockOptionsDialog(StockItem stockItem) {
+        String[] options = {"📊 View Chart", "💼 Add to Portfolio"};
+
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(stockItem.getSymbol())
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        // View Chart
+                        openChartFragment(stockItem.getSymbol());
+                    } else {
+                        // Add to Portfolio
+                        openAddStockDialog(stockItem);
+                    }
+                })
+                .show();
+    }
+    private void openAddStockDialog(StockItem stockItem) {
+        StockDialog dialog = StockDialog.newInstance(stockItem, currentUsername);
+        dialog.show(getChildFragmentManager(), "AddStockDialog");
+    }
     /**
      * Mở ChartFragment với mã chứng khoán được chọn
      * @param stockSymbol Mã chứng khoán (VD: "ACB", "VCB")
