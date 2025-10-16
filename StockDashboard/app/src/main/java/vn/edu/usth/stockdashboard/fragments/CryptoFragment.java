@@ -64,12 +64,14 @@ public class CryptoFragment extends Fragment {
             public void onReceive(Context context, Intent intent) {
                 String symbol = intent.getStringExtra("symbol");
                 double price = intent.getDoubleExtra("price", 0);
+                double open = intent.getDoubleExtra("open", 0);
+                double changePercent = intent.getDoubleExtra("change_percent", 0);
                 long timestamp = intent.getLongExtra("timestamp", 0);
 
                 String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault())
                         .format(new Date(timestamp * 1000));
 
-                CryptoItem item = new CryptoItem(symbol, price, time);
+                CryptoItem item = new CryptoItem(symbol, price, open, changePercent, time);
 
                 if (getActivity() != null && !getActivity().isFinishing()) {
                     getActivity().runOnUiThread(() -> adapter.updateItem(item));
@@ -78,7 +80,6 @@ public class CryptoFragment extends Fragment {
         };
 
         IntentFilter filter = new IntentFilter("CRYPTO_UPDATE");
-        // ✅ Dành cho Android 13+ (API 33–34)
         requireActivity().registerReceiver(cryptoReceiver, filter, Context.RECEIVER_EXPORTED);
         receiverRegistered = true;
     }

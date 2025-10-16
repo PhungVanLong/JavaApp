@@ -1,5 +1,7 @@
 package vn.edu.usth.stockdashboard.adapter;
 
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,9 +40,55 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         CryptoItem item = cryptoList.get(position);
-        holder.ctSymbol.setText(item.getSymbol().toUpperCase());
-        holder.ctPrice.setText(String.format("%.2f", item.getPrice()));
+
+        // Set symbol
+        holder.ctSymbol.setText(item.getSymbol().toUpperCase().replace("USDT", "/USDT"));
+
+        // Set price with background highlight
+        holder.ctPrice.setText(String.format("$%.2f", item.getPrice()));
+
+        // Set change percent text
+        String changeText;
+        if (item.getChangePercent() > 0) {
+            changeText = String.format("▲ +%.2f%%", item.getChangePercent());
+        } else if (item.getChangePercent() < 0) {
+            changeText = String.format("▼ %.2f%%", item.getChangePercent());
+        } else {
+            changeText = String.format("%.2f%%", item.getChangePercent());
+        }
+        holder.ctChange.setText(changeText);
+
+        // Apply colors based on price change
+        int backgroundColor;
+        int textColor;
+
+        if (item.isPriceUp()) {
+            backgroundColor = Color.parseColor("#4CAF50"); // Green background
+            textColor = Color.parseColor("#4CAF50");       // Green text
+        } else if (item.isPriceDown()) {
+            backgroundColor = Color.parseColor("#F44336"); // Red background
+            textColor = Color.parseColor("#F44336");       // Red text
+        } else {
+            backgroundColor = Color.parseColor("#9E9E9E"); // Gray background
+            textColor = Color.parseColor("#9E9E9E");       // Gray text
+        }
+
+        // Set background for price with rounded corners
+        GradientDrawable priceBackground = new GradientDrawable();
+        priceBackground.setColor(backgroundColor);
+        priceBackground.setCornerRadius(8f);
+        holder.ctPrice.setBackground(priceBackground);
+
+        // Set text color for change percent
+        holder.ctChange.setTextColor(textColor);
+
+        // Set time
         holder.ctTime.setText(item.getTime());
+
+        // Set volume if available
+        if (holder.ctVolume != null) {
+            holder.ctVolume.setText("Vol: N/A");
+        }
     }
 
     @Override
@@ -49,13 +97,15 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView ctSymbol, ctPrice, ctTime;
+        TextView ctSymbol, ctPrice, ctChange, ctTime, ctVolume;
 
         ViewHolder(View itemView) {
             super(itemView);
             ctSymbol = itemView.findViewById(R.id.ctSymbol);
             ctPrice = itemView.findViewById(R.id.ctPrice);
+            ctChange = itemView.findViewById(R.id.ctChange);
             ctTime = itemView.findViewById(R.id.ctTime);
+//            ctVolume = itemView.findViewById(R.id.ctVolume);
         }
     }
 }
