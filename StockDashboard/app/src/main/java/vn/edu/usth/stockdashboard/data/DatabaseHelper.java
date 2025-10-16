@@ -22,7 +22,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String P_COL_1 = "P_id"; // id của item (prim key)
     public static final String P_COL_2 = "P_username"; // username liên kết với portfolio (foreign key)
     public static final String P_COL_3 = "ticker"; // Mã cổ phiếu
-    public static final String P_COL_4 = "quantity"; // số lượng sở hữu (realtime)
+    public static final String P_COL_4 = "quantity"; // số lượng sở hữu
     public static final String P_COL_5 = "avg_price"; // giá mua trung bình
 
     public DatabaseHelper(Context context) {

@@ -6,6 +6,8 @@ import android.view.Window;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import vn.edu.usth.stockdashboard.fragments.CryptoFragment;
 import vn.edu.usth.stockdashboard.fragments.DashboardFragment;
 import vn.edu.usth.stockdashboard.fragments.PortfolioFragment;
 import vn.edu.usth.stockdashboard.fragments.UserAccountFragment;
@@ -18,6 +20,7 @@ public class MainActivity extends BaseActivity {
     // Keep references to your fragments
     final Fragment dashboardFragment = new DashboardFragment();
     final Fragment portfolioFragment = new PortfolioFragment();
+    final Fragment cryptoFragment = new CryptoFragment();
     Fragment accountFragment;
     Fragment activeFragment;
 
@@ -38,15 +41,14 @@ public class MainActivity extends BaseActivity {
         fragmentManager = getSupportFragmentManager();
 
         if (savedInstanceState == null) {
-            // *** FIX: XÓA DÒNG loadFragment(new DashboardFragment()) ***
             // Add all fragments initially, dashboard is visible by default
             fragmentManager.beginTransaction()
-                    .add(R.id.fragment_container, accountFragment, "3").hide(accountFragment)
-                    .add(R.id.fragment_container, portfolioFragment, "2").hide(portfolioFragment)
+                    .add(R.id.fragment_container, accountFragment, "4").hide(accountFragment)
+                    .add(R.id.fragment_container, portfolioFragment, "3").hide(portfolioFragment)
                     .add(R.id.fragment_container, dashboardFragment, "1") // Dashboard visible
+                    .add(R.id.fragment_container, cryptoFragment, "2").hide(cryptoFragment)
                     .commit();
             activeFragment = dashboardFragment;
-            // ← KHÔNG GỌI loadFragment() NỮA!
         }
 
         setupBottomNavigation();
@@ -58,6 +60,8 @@ public class MainActivity extends BaseActivity {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_dashboard) {
                 loadFragment(dashboardFragment);
+            } else if (itemId == R.id.nav_crypto) {
+                loadFragment(accountFragment);
             } else if (itemId == R.id.nav_portfolio) {
                 loadFragment(portfolioFragment);
             } else if (itemId == R.id.nav_account) {
