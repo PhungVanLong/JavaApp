@@ -9,18 +9,25 @@
     android:padding="20sp"
     android:fitsSystemWindows="true">
 
-    <include
-        layout="@layout/header_layout"
-        android:id="@+id/logo_header"
+    <TextView
+        android:id="@+id/header_title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:text="StockDashboard"
+        android:textSize="24sp"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:paddingLeft="20sp"
+        android:paddingVertical="12dp"
+        android:layout_alignParentTop="true"
+        />
 
     <!-- Container của fragment -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/logo_header"
+        android:layout_below="@id/header_title"
         android:layout_above="@id/bottom_navigation"/>
 
 
