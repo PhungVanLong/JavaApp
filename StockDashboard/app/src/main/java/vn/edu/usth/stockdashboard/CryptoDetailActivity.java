@@ -122,7 +122,7 @@ public class CryptoDetailActivity extends AppCompatActivity {
         lineChart.setHighlightPerDragEnabled(true);
 
 
-        // ✅ Add custom marker view
+        //Add custom marker view
         CustomMarkerView markerView = new CustomMarkerView(this, R.layout.marker_view);
         markerView.setChartView(lineChart);
         lineChart.setMarker(markerView);

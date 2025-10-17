@@ -201,7 +201,7 @@ public class ChartActivity extends BaseActivity {
                         return;
                     }
 
-                    Log.d(TAG, "✅ Successfully parsed " + seriesData.size() + " data points");
+                    Log.d(TAG, "Successfully parsed " + seriesData.size() + " data points");
 
                     // Gửi message tới Handler để update UI
                     Message msg = Message.obtain();
@@ -269,7 +269,7 @@ public class ChartActivity extends BaseActivity {
             anyChartView.setChart(cartesian);
             titleText.setText(stockSymbol + " – $" + String.format("%.2f", currentPrice));
 
-            Log.d(TAG, "✅ Chart rendered successfully");
+            Log.d(TAG, "Chart rendered successfully");
 
         } catch (Exception e) {
             Log.e(TAG, "❌ Error rendering chart: " + e.getMessage());
@@ -281,17 +281,17 @@ public class ChartActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // ✅ Clear chart
+        // Clear chart
         if (anyChartView != null) {
             anyChartView.setChart(null);
         }
 
-        // ✅ Stop handler
+        // Stop handler
         if (uiHandler != null) {
             uiHandler.removeCallbacksAndMessages(null);
         }
 
-        // ✅ Stop API calls
+        // Stop API calls
         if (client != null) {
             client.dispatcher().cancelAll();
         }

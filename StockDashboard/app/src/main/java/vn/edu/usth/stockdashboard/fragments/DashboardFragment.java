@@ -67,7 +67,7 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
             Log.d(TAG, "📦 Restored state - hasInitialData: " + hasInitialData);
         }
 
-        // ✅ Khởi tạo ViewModel chia sẻ giữa các fragment
+        // Khởi tạo ViewModel chia sẻ giữa các fragment
         sharedStockViewModel = new ViewModelProvider(requireActivity()).get(SharedStockViewModel.class);
 
         // Khởi tạo SSE service
@@ -164,7 +164,7 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
     public void onOpen() {
         if (!isAdded()) return;
         requireActivity().runOnUiThread(() -> {
-            Log.d(TAG, "✅ SSE Connected!");
+            Log.d(TAG, "SSE Connected!");
         });
     }
 

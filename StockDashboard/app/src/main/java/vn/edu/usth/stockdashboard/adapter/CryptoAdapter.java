@@ -21,12 +21,12 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
 
     public CryptoAdapter(List<CryptoItem> cryptoList) {
         this.cryptoList = cryptoList;
-        setHasStableIds(true); // ✅ Enable stable IDs
+        setHasStableIds(true); // Enable stable IDs
     }
 
     @Override
     public long getItemId(int position) {
-        // ✅ Return unique ID based on symbol
+        // Return unique ID based on symbol
         return cryptoList.get(position).getSymbol().hashCode();
     }
 
@@ -34,7 +34,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         for (int i = 0; i < cryptoList.size(); i++) {
             if (cryptoList.get(i).getSymbol().equalsIgnoreCase(item.getSymbol())) {
                 cryptoList.set(i, item);
-                notifyItemChanged(i, item); // ✅ Use payload to avoid full rebind
+                notifyItemChanged(i, item); // Use payload to avoid full rebind
                 return;
             }
         }
@@ -58,7 +58,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
     public void onBindViewHolder(ViewHolder holder, int position, List<Object> payloads) {
         CryptoItem item = cryptoList.get(position);
 
-        // ✅ If payload exists, only update changed data
+        // check sự tồn tại, nếu có thì chỉ update data
         if (payloads != null && !payloads.isEmpty()) {
             updateItemData(holder, item);
             return;
@@ -74,7 +74,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
 
         updateItemData(holder, item);
 
-        // ✅ Add click listener to open detail activity
+        // Add click listener to open detail activity
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), CryptoDetailActivity.class);
             intent.putExtra("symbol", item.getSymbol());
@@ -126,7 +126,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         holder.ctChange.setTextColor(textColor);
     }
 
-    // ✅ Helper method to get crypto full name
+    // Helper method to get crypto full name
     private String getCryptoName(String symbol) {
         Map<String, String> nameMap = new HashMap<>();
         nameMap.put("btcusdt", "Bitcoin");
@@ -168,7 +168,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
             ctTime = itemView.findViewById(R.id.ctTime);
 //            ctVolume = itemView.findViewById(R.id.ctVolume);
 
-            // ✅ Disable change animations on TextViews
+            // Disable change animations on TextViews
             ctPrice.setHasTransientState(false);
             ctChange.setHasTransientState(false);
         }
