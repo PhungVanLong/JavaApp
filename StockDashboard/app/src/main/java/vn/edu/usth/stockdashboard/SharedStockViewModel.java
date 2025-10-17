@@ -1,20 +1,21 @@
-package vn.edu.usth.stockdashboard.viewmodel;
+package vn.edu.usth.stockdashboard;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import java.util.List;
-import vn.edu.usth.stockdashboard.data.model.StockItem;
 
 public class SharedStockViewModel extends ViewModel {
+    private final MutableLiveData<Boolean> portfolioUpdated = new MutableLiveData<>(false);
 
-    private final MutableLiveData<List<StockItem>> stockListLiveData = new MutableLiveData<>();
-
-    public void setStockList(List<StockItem> stockList) {
-        stockListLiveData.postValue(stockList);
+    public LiveData<Boolean> getPortfolioUpdated() {
+        return portfolioUpdated;
     }
 
-    public LiveData<List<StockItem>> getStockList() {
-        return stockListLiveData;
+    public void notifyPortfolioUpdated() {
+        portfolioUpdated.setValue(true);
+    }
+
+    public void resetFlag() {
+        portfolioUpdated.setValue(false);
     }
 }
