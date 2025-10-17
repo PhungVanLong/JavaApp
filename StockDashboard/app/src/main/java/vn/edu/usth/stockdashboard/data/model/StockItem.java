@@ -13,6 +13,7 @@ public class StockItem {
     private final String symbol;
     private String time;
     private double price;
+
     private double change;
     private double percentChange;
     private long volume;
@@ -22,7 +23,7 @@ public class StockItem {
 
     private double investedValue; // Giá trị đã đầu tư
     private double currentValue;  // Giá trị hiện tại của khoản đầu tư
-    private int quantity; // Số lượng cổ phiếu nắm giữ
+    private double quantity; // Số lượng cổ phiếu nắm giữ
 
 
     // Constructor for creating initial placeholders
@@ -116,11 +117,11 @@ public class StockItem {
         return currentValue;
     }
 
-    public int getQuantity() {
+    public double getQuantity() {
         return quantity;
     }
     // Setters để cập nhật Portfolio Data
-    public void setQuantity(int quantity) {
+    public void setQuantity(double quantity) {
         this.quantity = quantity;
     }
 
@@ -131,4 +132,5 @@ public class StockItem {
     public void setCurrentValue(double currentValue) {
         this.currentValue = currentValue;
     }
+    public void setPrice(double price) {this.price = price;}
 }

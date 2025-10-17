@@ -1,34 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@drawable/back_ground_app"
     android:padding="20sp"
     android:fitsSystemWindows="true">
 
-    <TextView
-        android:id="@+id/header_title"
+    <LinearLayout
+        android:id="@+id/header_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="StockDashboard"
-        android:textSize="24sp"
-        android:textColor="@android:color/white"
-        android:textStyle="bold"
-        android:paddingLeft="20sp"
-        android:paddingVertical="12dp"
         android:layout_alignParentTop="true"
-        />
+        android:paddingVertical="10dp"
+        android:orientation="horizontal"
+        >
 
-    <!-- Container của fragment -->
+        <TextView
+            android:id="@+id/header_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="StockDashboard"
+            android:textSize="24sp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+
+            android:layout_gravity="center"
+            android:paddingStart="15dp"
+            android:paddingEnd="10dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            />
+
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/search_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_toRightOf="@id/header_title"
+            android:layout_marginHorizontal="10sp"
+            android:background="@drawable/search_background"
+            app:queryHint="Recent Searched..."
+            app:iconifiedByDefault="true"
+            android:focusable="true"
+            android:clickable="true"
+            android:queryBackground="@android:color/transparent"
+
+            />
+
+    </LinearLayout>
+
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/header_title"
-        android:layout_above="@id/bottom_navigation"/>
+        android:layout_below="@id/header_container"
+        android:layout_above="@id/bottom_navigation" />
 
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -40,11 +69,9 @@
         app:itemTextColor="@color/white"
         app:labelVisibilityMode="labeled"
         app:itemIconSize="20dp"
-        android:paddingTop="20dp"
+        android:paddingTop="5dp"
         app:itemHorizontalTranslationEnabled="false"
         android:layout_alignParentBottom="true"
         app:itemActiveIndicatorStyle="@style/App.Custom.Indicator"
         />
-
-
 </RelativeLayout>

@@ -26,9 +26,22 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
     public void setOnItemClickListener(OnItemClickListener listener) {
         this.listener = listener;
     }
+    private final OnCryptoLongClickListener longClickListener; // thêm callback
+    public interface OnCryptoLongClickListener {
+        void onCryptoLongClick(CryptoItem item);
+    }
 
-    public CryptoAdapter(List<CryptoItem> cryptoList) {
+
+    public CryptoAdapter(List<CryptoItem> cryptoList, OnCryptoLongClickListener longClickListener) {
         this.cryptoList = cryptoList;
+        this.longClickListener = longClickListener;
+        setHasStableIds(true); // Enable stable IDs
+    }
+
+    @Override
+    public long getItemId(int position) {
+        // Return unique ID based on symbol
+        return cryptoList.get(position).getSymbol().hashCode();
     }
 
     // ===== Cập nhật item từ SSE =====
@@ -36,7 +49,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         for (int i = 0; i < cryptoList.size(); i++) {
             if (cryptoList.get(i).getSymbol().equalsIgnoreCase(item.getSymbol())) {
                 cryptoList.set(i, item);
-                notifyItemChanged(i);
+                notifyItemChanged(i, item); // Use payload to avoid full rebind
                 return;
             }
         }
@@ -58,8 +71,46 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         h.ctSymbol.setText(item.getSymbol().toUpperCase().replace("USDT", "/USDT"));
         h.ctPrice.setText(String.format("$%.2f", item.getPrice()));
         h.ctTime.setText(item.getTime());
+        // check sự tồn tại, nếu có thì chỉ update data
+        if (payloads != null && !payloads.isEmpty()) {
+            updateItemData(holder, item);
+            return;
+        }
 
-        // ✅ Hiển thị màu phần trăm thay đổi
+        // Full bind
+        holder.ctSymbol.setText(item.getSymbol().toUpperCase().replace("USDT", "/USDT"));
+        holder.ctTime.setText(item.getTime());
+
+        if (holder.ctVolume != null) {
+            holder.ctVolume.setText("Vol: N/A");
+        }
+
+        updateItemData(holder, item);
+
+        // Add click listener to open detail activity
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), CryptoDetailActivity.class);
+            intent.putExtra("symbol", item.getSymbol());
+            intent.putExtra("name", getCryptoName(item.getSymbol()));
+            intent.putExtra("price", item.getPrice());
+            intent.putExtra("priceChange", item.getPrice() - item.getOpen());
+            intent.putExtra("changePercent", item.getChangePercent());
+            v.getContext().startActivity(intent);
+        });
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onCryptoLongClick(item);
+            }
+            return true;
+        });
+    }
+
+
+    private void updateItemData(ViewHolder holder, CryptoItem item) {
+        // Set price with background highlight
+        holder.ctPrice.setText(String.format("$%.2f", item.getPrice()));
+
+        // Set change percent text
         String changeText;
         if (item.getChangePercent() > 0) {
             changeText = String.format("▲ +%.2f%%", item.getChangePercent());
@@ -89,6 +140,30 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         });
     }
 
+    // Helper method to get crypto full name
+    private String getCryptoName(String symbol) {
+        Map<String, String> nameMap = new HashMap<>();
+        nameMap.put("btcusdt", "Bitcoin");
+        nameMap.put("ethusdt", "Ethereum");
+        nameMap.put("bnbusdt", "BNB");
+        nameMap.put("adausdt", "Cardano");
+        nameMap.put("xrpusdt", "XRP");
+        nameMap.put("solusdt", "Solana");
+        nameMap.put("dotusdt", "Polkadot");
+        nameMap.put("avxusdt", "Avalanche");
+        nameMap.put("ltcusdt", "Litecoin");
+        nameMap.put("linkusdt", "Chainlink");
+        nameMap.put("maticusdt", "Polygon");
+        nameMap.put("uniusdt", "Uniswap");
+        nameMap.put("atomusdt", "Cosmos");
+        nameMap.put("trxusdt", "Tron");
+        nameMap.put("aptusdt", "Aptos");
+        nameMap.put("filusdt", "Filecoin");
+        nameMap.put("nearusdt", "Near");
+        nameMap.put("icpusdt", "Internet Computer");
+        nameMap.put("vetusdt", "VeChain");
+
+        return nameMap.getOrDefault(symbol.toLowerCase(), symbol.toUpperCase());
     private void flashColor(TextView tv, int from, int to) {
         ValueAnimator animator = ValueAnimator.ofObject(new ArgbEvaluator(), to, from);
         animator.setDuration(500);
@@ -103,13 +178,19 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
 
     // ===== ViewHolder =====
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView ctSymbol, ctPrice, ctChange, ctTime;
-        ViewHolder(View v) {
-            super(v);
-            ctSymbol = v.findViewById(R.id.ctSymbol);
-            ctPrice = v.findViewById(R.id.ctPrice);
-            ctChange = v.findViewById(R.id.ctChange);
-            ctTime = v.findViewById(R.id.ctTime);
+        TextView ctSymbol, ctPrice, ctChange, ctTime, ctVolume;
+
+        ViewHolder(View itemView) {
+            super(itemView);
+            ctSymbol = itemView.findViewById(R.id.ctSymbol);
+            ctPrice = itemView.findViewById(R.id.ctPrice);
+            ctChange = itemView.findViewById(R.id.ctChange);
+            ctTime = itemView.findViewById(R.id.ctTime);
+//            ctVolume = itemView.findViewById(R.id.ctVolume);
+
+            // Disable change animations on TextViews
+            ctPrice.setHasTransientState(false);
+            ctChange.setHasTransientState(false);
         }
     }
 }

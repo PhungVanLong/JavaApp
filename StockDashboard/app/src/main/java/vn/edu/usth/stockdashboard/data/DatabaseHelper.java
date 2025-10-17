@@ -17,7 +17,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_2 = "username";
     public static final String COL_3 = "password";
 
-    // Database cho  Portfolio
+    // Database cho Portfolio
     public static final String TABLE_PORTFOLIO = "portfolio";
     public static final String P_COL_1 = "P_id"; // id của item (prim key)
     public static final String P_COL_2 = "P_username"; // username liên kết với portfolio (foreign key)
@@ -31,21 +31,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // đây là bảng cho users
+        // Bảng users
         String createTable = "CREATE TABLE " + TABLE_NAME + " (" +
                 COL_1 + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COL_2 + " TEXT UNIQUE, " + //username
-                COL_3 + " TEXT)";          //password
+                COL_2 + " TEXT UNIQUE, " + // username
+                COL_3 + " TEXT)";          // password
         db.execSQL(createTable);
 
-        //đây là bảng cho portfolio
+        // Bảng portfolio
         String createPortfolioTable = "CREATE TABLE " + TABLE_PORTFOLIO + " (" +
                 P_COL_1 + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 P_COL_2 + " TEXT, " + // username
-                P_COL_3 + " TEXT, " + // Ticker
-                P_COL_4 + " REAL, " + // Quantity
-                P_COL_5 + " REAL, " + // AvgPrice
-                // Đảm bảo username trong bảng portfolio tồn tại trong bảng users
+                P_COL_3 + " TEXT, " + // ticker
+                P_COL_4 + " REAL, " + // quantity
+                P_COL_5 + " REAL, " + // avg_price
                 "FOREIGN KEY(" + P_COL_2 + ") REFERENCES " + TABLE_NAME + "(" + COL_2 + ")" +
                 ")";
 
@@ -60,19 +59,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insert(TABLE_NAME, null, testUser);
         Log.d(TAG, "Test user inserted.");
 
-        ContentValues stock1 = new ContentValues();
-        stock1.put(P_COL_2, "test");
-        stock1.put(P_COL_3, "AAPL");
-        stock1.put(P_COL_4, 5.0); // 5 cổ phiếu
-        stock1.put(P_COL_5, 150.0); // giá mua trung bình 150
-        db.insert(TABLE_PORTFOLIO, null, stock1);
-
-        ContentValues stock2 = new ContentValues();
-        stock2.put(P_COL_2, "test");
-        stock2.put(P_COL_3, "GOOG");
-        stock2.put(P_COL_4, 1.5); // 1.5 cổ phiếu
-        stock2.put(P_COL_5, 2500.0); // giá mua trung bình 2500
-        db.insert(TABLE_PORTFOLIO, null, stock2);
+        // Thêm stock mẫu vào portfolio
+        addSamplePortfolio(db, "test", "AAPL", 5.0, 150.0);
+        addSamplePortfolio(db, "test", "GOOG", 1.5, 2500.0);
     }
 
     private void addSamplePortfolio(SQLiteDatabase db, String username, String ticker, double quantity, double avgPrice) {
@@ -99,7 +88,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL_2, username);
         contentValues.put(COL_3, password);
-
         long result = db.insert(TABLE_NAME, null, contentValues);
         db.close();
         return result != -1; // true nếu thành công
@@ -170,19 +158,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         );
     }
 
-    // Thêm một mục portfolio cho người dùng
-    public boolean addPortfolioItem(String username, String ticker, double quantity, double avgPrice) {
+    public boolean addPortfolioItem(String username, String symbol, double quantity, double buyPrice) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(P_COL_2, username);
-        contentValues.put(P_COL_3, ticker);
-        contentValues.put(P_COL_4, quantity);
-        contentValues.put(P_COL_5, avgPrice);
 
-        long result = db.insert(TABLE_PORTFOLIO, null, contentValues);
-        db.close();
-        return result != -1;
+        // Kiểm tra xem stock đã có chưa
+        Cursor cursor = db.rawQuery("SELECT " + P_COL_4 + ", " + P_COL_5 +
+                        " FROM " + TABLE_PORTFOLIO + " WHERE " + P_COL_2 + "=? AND " + P_COL_3 + "=?",
+                new String[]{username, symbol});
+
+        if (cursor.moveToFirst()) {
+            double oldQty = cursor.getDouble(0);
+            double oldPrice = cursor.getDouble(1);
+
+            double newQty = oldQty + quantity;
+            double avgPrice = ((oldQty * oldPrice) + (quantity * buyPrice)) / newQty;
+
+            ContentValues values = new ContentValues();
+            values.put(P_COL_4, newQty);
+            values.put(P_COL_5, avgPrice);
+
+            int updated = db.update(TABLE_PORTFOLIO, values, P_COL_2 + "=? AND " + P_COL_3 + "=?",
+                    new String[]{username, symbol});
+            cursor.close();
+            db.close();
+            return updated > 0;
+        } else {
+            ContentValues values = new ContentValues();
+            values.put(P_COL_2, username);
+            values.put(P_COL_3, symbol);
+            values.put(P_COL_4, quantity);
+            values.put(P_COL_5, buyPrice);
+
+            long result = db.insert(TABLE_PORTFOLIO, null, values);
+            cursor.close();
+            db.close();
+            return result != -1;
+        }
     }
+
 
     // Xóa stock khỏi portfolio
     public boolean deletePortfolioItem(String username, String ticker) {

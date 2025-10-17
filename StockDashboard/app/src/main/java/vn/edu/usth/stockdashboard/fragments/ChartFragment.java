@@ -401,7 +401,7 @@ public class ChartFragment extends Fragment {
                 titleText.setText(stockSymbol + " – $" + String.format("%.2f", currentPrice));
             }
 
-            Log.d(TAG, "✅ Chart rendered successfully");
+            Log.d(TAG, "Chart rendered successfully");
 
         } catch (Exception e) {
             Log.e(TAG, "❌ Error rendering chart: " + e.getMessage());

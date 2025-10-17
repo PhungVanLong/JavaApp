@@ -18,7 +18,7 @@ public class PortfolioAdapter extends RecyclerView.Adapter<PortfolioAdapter.Port
     private List<StockItem> stockList;
     private String username; // thêm dòng này
 
-    // ✅ Constructor mới (2 tham số)
+    // Constructor mới (2 tham số)
     public PortfolioAdapter(List<StockItem> stockList, String username) {
         this.stockList = stockList;
         this.username = username;
