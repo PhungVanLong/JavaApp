@@ -3,144 +3,261 @@ package vn.edu.usth.stockdashboard;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.graphics.Color;
-import android.os.*;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.*;
-import com.github.mikephil.charting.data.*;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 
-import org.json.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import vn.edu.usth.stockdashboard.view.CustomMarkerView;
 
 public class CryptoDetailActivity extends AppCompatActivity {
 
-    private TextView tvCryptoName, tvCurrentPrice, tvPriceChange, tvLastUpdate, tvDayRange, tvYearRange;
-    private ImageView btnBack;
-    private LineChart lineChart;
-    private String symbol, cryptoName;
+    // --- Khai báo các thành phần UI với tên đầy đủ ---
+    private TextView cryptoNameTextView, currentPriceTextView, priceChangeTextView, lastUpdateTextView, dayRangeTextView, yearRangeTextView;
+    private ImageView backButton;
+    private LineChart priceHistoryChart;
 
-    private Handler handler = new Handler(Looper.getMainLooper());
-    private Thread sseThread;
-    private volatile boolean isRunning = true;
-    private double lastPrice = -1;
-
-    // Các nút timeframe
-    private Button btn1Week, btn1Month, btn1Year, btn5Years, btnAll;
+    // --- Các nút chọn khung thời gian ---
+    private Button oneWeekButton, oneMonthButton, oneYearButton, fiveYearsButton, allTimeButton;
     private Button currentSelectedButton = null;
+
+    // --- Thuộc tính dữ liệu ---
+    private String symbol; // Ví dụ: "btcusdt"
+    private String cryptoFullName; // Ví dụ: "BITCOIN" (dùng làm giá trị dự phòng)
+
+    // --- Quản lý luồng và cập nhật UI ---
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Thread sseThread;
+    private volatile boolean isRunning = true; // Dùng 'volatile' để đảm bảo tính toàn vẹn của biến giữa các luồng
+    private double lastPrice = -1.0; // Lưu giá cuối cùng để so sánh
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crypto_detail);
 
+        // Lấy dữ liệu được truyền từ Fragment
         symbol = getIntent().getStringExtra("symbol");
-        cryptoName = getIntent().getStringExtra("name");
+        cryptoFullName = getIntent().getStringExtra("name");
 
-        tvCryptoName = findViewById(R.id.tvCryptoName);
-        tvCurrentPrice = findViewById(R.id.tvCurrentPrice);
-        tvPriceChange = findViewById(R.id.tvPriceChange);
-        tvLastUpdate = findViewById(R.id.tvLastUpdate);
-        tvDayRange = findViewById(R.id.tvDayRange);
-        tvYearRange = findViewById(R.id.tvYearRange);
-        btnBack = findViewById(R.id.btnBack);
-        lineChart = findViewById(R.id.lineChart);
+        // Ánh xạ View từ layout XML
+        initializeViews();
 
-        // Gán button
-        btn1Week = findViewById(R.id.btn1Week);
-        btn1Month = findViewById(R.id.btn1Month);
-        btn1Year = findViewById(R.id.btn1Year);
-        btn5Years = findViewById(R.id.btn5Years);
+        // Gán dữ liệu ban đầu và cài đặt sự kiện
+        setupInitialUI();
 
-        btnAll = findViewById(R.id.btnAll);
+        // Cài đặt sự kiện cho các nút chọn khung thời gian
+        setupTimeframeButtons();
 
-        tvCryptoName.setText(cryptoName);
-        btnBack.setOnClickListener(v -> finish());
-
-        // Timeframe (đã bỏ nút 1 day)
-        setupButton(btn1Week, "4h", 7);
-        setupButton(btn1Month, "4h", 30);
-        setupButton(btn1Year, "4h", 365);
-        setupButton(btn5Years, "1w", 5 * 365);
-        setupButton(btnAll, "1w", 10 * 365);
-
-        // Mặc định chọn 1 tháng
-        highlightSelectedButton(btn1Month);
-        loadChartData(symbol, "4h", 30);
-        startSSE(symbol);
+        // Mặc định chọn khung thời gian 1 tháng khi mở màn hình
+        highlightSelectedButton(oneMonthButton);
+        fetchAndRenderChartData(symbol, "4h", 30);
     }
 
-    private void setupButton(Button button, String interval, int days) {
-        button.setOnClickListener(v -> {
-            loadChartData(symbol, interval, days);
-        });
+    /**
+     * Bắt đầu luồng lắng nghe SSE khi Activity được hiển thị cho người dùng.
+     */
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (sseThread == null || !sseThread.isAlive()) {
+            isRunning = true;
+            startRealtimePriceUpdates(symbol);
+        }
     }
 
+    /**
+     * Dừng luồng lắng nghe SSE khi Activity không còn được nhìn thấy.
+     * Điều này giúp tiết kiệm tài nguyên (mạng, pin) một cách hiệu quả.
+     */
+    @Override
+    protected void onStop() {
+        super.onStop();
+        isRunning = false;
+        if (sseThread != null) {
+            sseThread.interrupt(); // Gửi tín hiệu yêu cầu dừng luồng
+            sseThread = null;      // Giải phóng tham chiếu
+        }
+    }
+
+    /**
+     * Ánh xạ các biến tới ID của chúng trong file layout XML.
+     */
+    private void initializeViews() {
+        cryptoNameTextView = findViewById(R.id.tvCryptoName);
+        currentPriceTextView = findViewById(R.id.tvCurrentPrice);
+        priceChangeTextView = findViewById(R.id.tvPriceChange);
+        lastUpdateTextView = findViewById(R.id.tvLastUpdate);
+        dayRangeTextView = findViewById(R.id.tvDayRange);
+        yearRangeTextView = findViewById(R.id.tvYearRange);
+        backButton = findViewById(R.id.btnBack);
+        priceHistoryChart = findViewById(R.id.lineChart);
+
+        oneWeekButton = findViewById(R.id.btn1Week);
+        oneMonthButton = findViewById(R.id.btn1Month);
+        oneYearButton = findViewById(R.id.btn1Year);
+        fiveYearsButton = findViewById(R.id.btn5Years);
+        allTimeButton = findViewById(R.id.btnAll);
+    }
+
+    /**
+     * Cài đặt các giá trị ban đầu và sự kiện click cho các thành phần UI.
+     */
+    private void setupInitialUI() {
+        // Sử dụng hàm mapSymbolToFullName để hiển thị tên đầy đủ
+        cryptoNameTextView.setText(mapSymbolToFullName(symbol));
+        backButton.setOnClickListener(v -> finish());
+    }
+
+    /**
+     * Gán sự kiện OnClickListener cho các nút chọn khung thời gian.
+     */
+    private void setupTimeframeButtons() {
+        oneWeekButton.setOnClickListener(v -> handleTimeframeSelection(oneWeekButton, "4h", 7));
+        oneMonthButton.setOnClickListener(v -> handleTimeframeSelection(oneMonthButton, "4h", 30));
+        oneYearButton.setOnClickListener(v -> handleTimeframeSelection(oneYearButton, "1d", 365));
+        fiveYearsButton.setOnClickListener(v -> handleTimeframeSelection(fiveYearsButton, "1w", 5 * 365));
+        allTimeButton.setOnClickListener(v -> handleTimeframeSelection(allTimeButton, "1w", 10 * 365)); // Giả định "All" là 10 năm
+    }
+
+    /**
+     * Xử lý logic khi một nút timeframe được nhấn.
+     */
+    private void handleTimeframeSelection(Button clickedButton, String interval, int days) {
+        highlightSelectedButton(clickedButton);
+        fetchAndRenderChartData(symbol, interval, days);
+    }
+
+    /**
+     * Thay đổi giao diện để làm nổi bật nút đang được chọn.
+     * (Bạn có thể thêm code thay đổi màu nền hoặc màu chữ ở đây)
+     */
     private void highlightSelectedButton(Button selectedButton) {
-
+        if (currentSelectedButton != null) {
+            // Ví dụ: currentSelectedButton.setBackgroundColor(Color.TRANSPARENT);
+        }
+        // Ví dụ: selectedButton.setBackgroundColor(Color.BLUE);
         currentSelectedButton = selectedButton;
     }
 
-    // ======================
-    // 1️⃣ LẤY DỮ LIỆU CHART
-    // ======================
-    private void loadChartData(String symbol, String interval, int days) {
+    /**
+     * Hàm ánh xạ từ mã symbol sang tên đầy đủ của crypto.
+     * @param symbol Mã crypto, ví dụ: "btcusdt"
+     * @return Tên đầy đủ, ví dụ: "Bitcoin"
+     */
+    private String mapSymbolToFullName(String symbol) {
+        if (symbol == null) return "Unknown";
+        switch (symbol.toLowerCase()) {
+            case "btcusdt": return "Bitcoin";
+            case "ethusdt": return "Ethereum";
+            case "bnbusdt": return "BNB";
+            case "adausdt": return "Cardano";
+            case "xrpusdt": return "XRP";
+            case "solusdt": return "Solana";
+            case "dotusdt": return "Polkadot";
+            case "avxusdt": return "Avalanche";
+            case "ltcusdt": return "Litecoin";
+            case "linkusdt": return "Chainlink";
+            case "maticusdt": return "Polygon";
+            case "uniusdt": return "Uniswap";
+            case "atomusdt": return "Cosmos";
+            case "trxusdt": return "TRON";
+            case "aptusdt": return "Aptos";
+            case "filusdt": return "Filecoin";
+            case "nearusdt": return "NEAR Protocol";
+            case "icpusdt": return "Internet Computer";
+            case "vetusdt": return "VeChain";
+            default:
+                // Nếu không tìm thấy, trả về tên đã được xử lý từ trước hoặc tự suy ra
+                return cryptoFullName != null ? cryptoFullName : symbol.replace("usdt", "").toUpperCase();
+        }
+    }
+
+
+    // ==============================================================
+    // PHẦN 1: TẢI VÀ HIỂN THỊ DỮ LIỆU LỊCH SỬ CHO BIỂU ĐỒ
+    // ==============================================================
+
+    private void fetchAndRenderChartData(String symbol, String interval, int days) {
         new Thread(() -> {
             try {
-                long now = System.currentTimeMillis();
-                long start = now - days * 24L * 60 * 60 * 1000;
+                long currentTimeMillis = System.currentTimeMillis();
+                long startTimeMillis = currentTimeMillis - (days * 24L * 60 * 60 * 1000);
 
-                String urlStr = "https://api-crypto-58oa.onrender.com/history?symbol=" +
-                        symbol + "&interval=" + interval + "&start=" + start + "&end=" + now;
+                String urlString = "https://api-crypto-58oa.onrender.com/history?symbol=" +
+                        symbol + "&interval=" + interval + "&start=" + startTimeMillis + "&end=" + currentTimeMillis;
 
-                URL url = new URL(urlStr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.connect();
+                URL url = new URL(urlString);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.connect();
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 StringBuilder jsonBuilder = new StringBuilder();
                 String line;
-                while ((line = reader.readLine()) != null) jsonBuilder.append(line);
+                while ((line = reader.readLine()) != null) {
+                    jsonBuilder.append(line);
+                }
                 reader.close();
+                connection.disconnect();
 
-                JSONArray arr = new JSONArray(jsonBuilder.toString());
-                List<Entry> entries = new ArrayList<>();
-                List<Long> times = new ArrayList<>();
+                JSONArray jsonArray = new JSONArray(jsonBuilder.toString());
+                List<Entry> chartEntries = new ArrayList<>();
 
                 double minPrice = Double.MAX_VALUE;
                 double maxPrice = Double.MIN_VALUE;
 
-                for (int i = 0; i < arr.length(); i++) {
-                    JSONObject o = arr.getJSONObject(i);
-                    long time = o.getLong("time");
-                    float close = (float) o.getDouble("close");
-                    entries.add(new Entry(time, close)); // Dùng timestamp
-                    times.add(time);
-                    minPrice = Math.min(minPrice, close);
-                    maxPrice = Math.max(maxPrice, close);
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+                    long time = jsonObject.getLong("time");
+                    float closePrice = (float) jsonObject.getDouble("close");
+
+                    chartEntries.add(new Entry(time, closePrice));
+                    minPrice = Math.min(minPrice, closePrice);
+                    maxPrice = Math.max(maxPrice, closePrice);
                 }
 
                 double finalMinPrice = minPrice;
                 double finalMaxPrice = maxPrice;
-                handler.post(() -> renderChart(entries, times, finalMinPrice, finalMaxPrice, interval));
+                handler.post(() -> {
+                    renderChart(chartEntries, interval);
+                    dayRangeTextView.setText(String.format(Locale.US, "$%.2f - $%.2f", finalMinPrice, finalMaxPrice));
+                    yearRangeTextView.setText(String.format(Locale.US, "$%.2f - $%.2f", finalMinPrice * 0.8, finalMaxPrice * 1.2));
+                });
 
             } catch (Exception e) {
-                Log.e("Chart", "Error loading chart: ", e);
+                Log.e("ChartDataError", "Lỗi khi tải dữ liệu biểu đồ: ", e);
             }
         }).start();
     }
 
-    private void renderChart(List<Entry> entries, List<Long> times, double minPrice, double maxPrice, String interval) {
+    private void renderChart(List<Entry> entries, String interval) {
         LineDataSet dataSet = new LineDataSet(entries, "Giá " + symbol.toUpperCase());
         dataSet.setColor(Color.parseColor("#4A90E2"));
         dataSet.setLineWidth(2f);
@@ -149,140 +266,129 @@ public class CryptoDetailActivity extends AppCompatActivity {
         dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
 
         LineData lineData = new LineData(dataSet);
-        lineChart.setData(lineData);
+        priceHistoryChart.setData(lineData);
 
-        // Marker View
         CustomMarkerView markerView = new CustomMarkerView(this, R.layout.marker_view);
-        lineChart.setMarker(markerView);
+        priceHistoryChart.setMarker(markerView);
 
-        // X-Axis (theo timestamp)
-        XAxis xAxis = lineChart.getXAxis();
+        XAxis xAxis = priceHistoryChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawGridLines(false);
         xAxis.setTextColor(Color.LTGRAY);
         xAxis.setLabelRotationAngle(-30);
-
         xAxis.setValueFormatter(new ValueFormatter() {
-            private final SimpleDateFormat sdf;
-
+            private final SimpleDateFormat dateFormat;
             {
                 switch (interval) {
                     case "1h":
-                        sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-                        break;
                     case "4h":
-                        sdf = new SimpleDateFormat("dd/MM", Locale.getDefault());
+                        dateFormat = new SimpleDateFormat("dd/MM", Locale.getDefault());
                         break;
                     case "1d":
                     case "1w":
                     default:
-                        sdf = new SimpleDateFormat("MM/yyyy", Locale.getDefault());
+                        dateFormat = new SimpleDateFormat("MM/yyyy", Locale.getDefault());
                         break;
                 }
             }
-
             @Override
             public String getFormattedValue(float value) {
-                return sdf.format(new Date((long) value));
+                return dateFormat.format(new Date((long) value));
             }
         });
 
-        // Y-Axis
-        YAxis leftAxis = lineChart.getAxisLeft();
+        YAxis leftAxis = priceHistoryChart.getAxisLeft();
         leftAxis.setTextColor(Color.LTGRAY);
         leftAxis.setDrawGridLines(true);
-        lineChart.getAxisRight().setEnabled(false);
+        priceHistoryChart.getAxisRight().setEnabled(false);
 
-        // Chart style
-        lineChart.getDescription().setText("");
-        lineChart.invalidate();
-
-        tvDayRange.setText(String.format(Locale.US, "$%.2f - $%.2f", minPrice, maxPrice));
-        tvYearRange.setText(String.format(Locale.US, "$%.2f - $%.2f", minPrice * 0.5, maxPrice * 1.2));
+        priceHistoryChart.getDescription().setEnabled(false);
+        priceHistoryChart.getLegend().setEnabled(false);
+        priceHistoryChart.invalidate();
     }
 
-    // ======================
-    // 2️⃣ SSE GIÁ REALTIME
-    // ======================
-    private void startSSE(String symbol) {
-        String urlStr = "https://crypto-server-xqv5.onrender.com/events?symbols=" + symbol;
+
+    // ==============================================================
+    // PHẦN 2: CẬP NHẬT GIÁ REAL-TIME BẰNG SSE
+    // ==============================================================
+
+    private void startRealtimePriceUpdates(String symbol) {
+        String urlString = "https://crypto-server-xqv5.onrender.com/events?symbols=" + symbol;
         sseThread = new Thread(() -> {
-            HttpURLConnection conn = null;
+            HttpURLConnection connection = null;
             BufferedReader reader = null;
             try {
-                URL url = new URL(urlStr);
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setRequestProperty("Accept", "text/event-stream");
-                conn.setConnectTimeout(10000);
-                conn.setReadTimeout(0);
-                conn.connect();
+                URL url = new URL(urlString);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Accept", "text/event-stream");
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(0);
+                connection.connect();
 
-                reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 String line;
                 StringBuilder dataBuilder = new StringBuilder();
 
                 while (isRunning && (line = reader.readLine()) != null) {
                     if (line.startsWith("data:")) {
                         dataBuilder.append(line.substring(5).trim());
-                    } else if (line.isEmpty()) {
-                        if (dataBuilder.length() > 0) {
-                            try {
-                                JSONObject json = new JSONObject(dataBuilder.toString());
-                                double price = json.getDouble("price");
-                                double changePercent = json.getDouble("change_percent");
-                                long timestamp = json.getLong("timestamp") * 1000;
-                                handler.post(() -> updateUI(price, changePercent, timestamp));
-                            } catch (Exception e) {
-                                Log.e("SSE", "Parse error: " + e.getMessage());
-                            }
-                            dataBuilder.setLength(0);
+                    } else if (line.isEmpty() && dataBuilder.length() > 0) {
+                        try {
+                            JSONObject json = new JSONObject(dataBuilder.toString());
+                            double price = json.getDouble("price");
+                            double changePercent = json.getDouble("change_percent");
+                            long timestamp = json.getLong("timestamp") * 1000;
+                            handler.post(() -> updatePriceUI(price, changePercent, timestamp));
+                        } catch (Exception e) {
+                            Log.e("SSE_ParseError", "Lỗi phân tích JSON: " + e.getMessage());
                         }
+                        dataBuilder.setLength(0);
                     }
                 }
-            } catch (Exception e) {
-                Log.e("SSE", "Error: ", e);
+            } catch (IOException e) {
+                if (isRunning) {
+                    Log.e("SSE_ConnectionError", "Lỗi kết nối SSE: ", e);
+                }
             } finally {
                 try {
                     if (reader != null) reader.close();
-                    if (conn != null) conn.disconnect();
+                    if (connection != null) connection.disconnect();
                 } catch (IOException ignored) {}
             }
         });
         sseThread.start();
     }
 
-    // ======================
-    // 3️⃣ CẬP NHẬT UI GIÁ
-    // ======================
-    private void updateUI(double price, double changePercent, long timestamp) {
+
+    // ==============================================================
+    // PHẦN 3: CẬP NHẬT GIAO DIỆN
+    // ==============================================================
+
+    private void updatePriceUI(double price, double changePercent, long timestamp) {
         if (lastPrice > 0) {
-            if (price > lastPrice) flash(tvCurrentPrice, Color.WHITE, Color.parseColor("#4CAF50"));
-            else if (price < lastPrice) flash(tvCurrentPrice, Color.WHITE, Color.parseColor("#F44336"));
+            if (price > lastPrice) {
+                flashTextView(currentPriceTextView, Color.WHITE, Color.parseColor("#4CAF50")); // Xanh
+            } else if (price < lastPrice) {
+                flashTextView(currentPriceTextView, Color.WHITE, Color.parseColor("#F44336")); // Đỏ
+            }
         }
         lastPrice = price;
 
-        tvCurrentPrice.setText(String.format(Locale.US, "$%.4f", price));
-        tvPriceChange.setText(String.format(Locale.US, "%.3f%%", changePercent));
-        tvPriceChange.setTextColor(changePercent >= 0 ? Color.parseColor("#4CAF50") : Color.parseColor("#F44336"));
+        currentPriceTextView.setText(String.format(Locale.US, "$%.3f", price));
+        priceChangeTextView.setText(String.format(Locale.US, "%.3f%%", changePercent));
+
+        int priceChangeColor = changePercent >= 0 ? Color.parseColor("#4CAF50") : Color.parseColor("#F44336");
+        priceChangeTextView.setTextColor(priceChangeColor);
 
         String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date(timestamp));
-        tvLastUpdate.setText("Cập nhật: " + time);
+        lastUpdateTextView.setText("Cập nhật: " + time);
     }
 
-    private void flash(TextView tv, int from, int to) {
-        ValueAnimator animator = ValueAnimator.ofObject(new ArgbEvaluator(), to, from);
-        animator.setDuration(400);
-        animator.addUpdateListener(a -> tv.setTextColor((int) a.getAnimatedValue()));
+    private void flashTextView(TextView textView, int startColor, int endColor) {
+        ValueAnimator animator = ValueAnimator.ofObject(new ArgbEvaluator(), endColor, startColor);
+        animator.setDuration(500);
+        animator.addUpdateListener(animation -> textView.setTextColor((int) animation.getAnimatedValue()));
         animator.start();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        isRunning = false;
-        if (sseThread != null && sseThread.isAlive()) {
-            sseThread.interrupt();
-        }
     }
 }
