@@ -1,5 +1,6 @@
 package vn.edu.usth.stockdashboard.adapter;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
@@ -7,7 +8,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import vn.edu.usth.stockdashboard.CryptoDetailActivity;
 import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.data.model.CryptoItem;
 
@@ -68,6 +73,17 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         }
 
         updateItemData(holder, item);
+
+        // ✅ Add click listener to open detail activity
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), CryptoDetailActivity.class);
+            intent.putExtra("symbol", item.getSymbol());
+            intent.putExtra("name", getCryptoName(item.getSymbol()));
+            intent.putExtra("price", item.getPrice());
+            intent.putExtra("priceChange", item.getPrice() - item.getOpen());
+            intent.putExtra("changePercent", item.getChangePercent());
+            v.getContext().startActivity(intent);
+        });
     }
 
     private void updateItemData(ViewHolder holder, CryptoItem item) {
@@ -108,6 +124,32 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
 
         // Set text color for change percent
         holder.ctChange.setTextColor(textColor);
+    }
+
+    // ✅ Helper method to get crypto full name
+    private String getCryptoName(String symbol) {
+        Map<String, String> nameMap = new HashMap<>();
+        nameMap.put("btcusdt", "Bitcoin");
+        nameMap.put("ethusdt", "Ethereum");
+        nameMap.put("bnbusdt", "BNB");
+        nameMap.put("adausdt", "Cardano");
+        nameMap.put("xrpusdt", "XRP");
+        nameMap.put("solusdt", "Solana");
+        nameMap.put("dotusdt", "Polkadot");
+        nameMap.put("avxusdt", "Avalanche");
+        nameMap.put("ltcusdt", "Litecoin");
+        nameMap.put("linkusdt", "Chainlink");
+        nameMap.put("maticusdt", "Polygon");
+        nameMap.put("uniusdt", "Uniswap");
+        nameMap.put("atomusdt", "Cosmos");
+        nameMap.put("trxusdt", "Tron");
+        nameMap.put("aptusdt", "Aptos");
+        nameMap.put("filusdt", "Filecoin");
+        nameMap.put("nearusdt", "Near");
+        nameMap.put("icpusdt", "Internet Computer");
+        nameMap.put("vetusdt", "VeChain");
+
+        return nameMap.getOrDefault(symbol.toLowerCase(), symbol.toUpperCase());
     }
 
     @Override
