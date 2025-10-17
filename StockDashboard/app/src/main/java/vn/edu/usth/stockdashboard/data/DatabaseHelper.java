@@ -171,18 +171,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Thêm một mục portfolio cho người dùng
-    public boolean addPortfolioItem(String username, String ticker, double quantity, double avgPrice) {
+    public boolean addPortfolioItem(String username, String symbol, double quantity, double buyPrice) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(P_COL_2, username);
-        contentValues.put(P_COL_3, ticker);
-        contentValues.put(P_COL_4, quantity);
-        contentValues.put(P_COL_5, avgPrice);
 
-        long result = db.insert(TABLE_PORTFOLIO, null, contentValues);
-        db.close();
-        return result != -1;
+        // 1️⃣ Kiểm tra xem cổ phiếu này đã tồn tại chưa
+        Cursor cursor = db.rawQuery("SELECT quantity, buy_price FROM portfolio WHERE username=? AND symbol=?",
+                new String[]{username, symbol});
+
+        if (cursor.moveToFirst()) {
+            // 2️⃣ Nếu đã có, thì cập nhật số lượng & giá trung bình
+            double oldQty = cursor.getDouble(0);
+            double oldPrice = cursor.getDouble(1);
+
+            double newQty = oldQty + quantity;
+            double avgPrice = ((oldQty * oldPrice) + (quantity * buyPrice)) / newQty;
+
+            ContentValues values = new ContentValues();
+            values.put("quantity", newQty);
+            values.put("buy_price", avgPrice);
+
+            int updated = db.update("portfolio", values, "username=? AND symbol=?", new String[]{username, symbol});
+            cursor.close();
+            db.close();
+            return updated > 0;
+        } else {
+            // 3️⃣ Nếu chưa có thì thêm mới
+            ContentValues values = new ContentValues();
+            values.put("username", username);
+            values.put("symbol", symbol);
+            values.put("quantity", quantity);
+            values.put("buy_price", buyPrice);
+
+            long result = db.insert("portfolio", null, values);
+            cursor.close();
+            db.close();
+            return result != -1;
+        }
     }
+
 
     // Xóa stock khỏi portfolio
     public boolean deletePortfolioItem(String username, String ticker) {

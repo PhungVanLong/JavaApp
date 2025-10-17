@@ -38,31 +38,40 @@ public class PortfolioAdapter extends RecyclerView.Adapter<PortfolioAdapter.Port
 
     @Override
     public void onBindViewHolder(@NonNull PortfolioViewHolder holder, int position) {
-        StockItem item = stockList.get(position);
+        StockItem stock = stockList.get(position);
 
-        holder.tvTicker.setText(item.getSymbol());
-        holder.tvPrice.setText(String.format("%.2f USD", item.getPrice()));
-        holder.tvInvested.setText("Invested: 1000"); // bạn có thể thay bằng dữ liệu thật
-        holder.tvCurrent.setText(String.format("Current: %.0f", item.getPrice() * 10)); // ví dụ
-        double pnl = item.getPrice() * 10 - 1000;
-        holder.tvPnL.setText(String.format("PnL: %.0f", pnl));
-        holder.tvPnL.setTextColor(pnl >= 0 ?
-                holder.itemView.getResources().getColor(android.R.color.holo_green_light) :
-                holder.itemView.getResources().getColor(android.R.color.holo_red_light));
+        holder.tvTicker.setText(stock.getSymbol());
+        holder.tvPrice.setText("Price: " + String.format("%.2f", stock.getPrice()));
+        holder.tvQuantity.setText("Quantity: " + stock.getQuantity());
+
+        double invested = stock.getInvestedValue();
+        double current = stock.getCurrentValue();
+        double pnl = current - invested;
+        double pnlPercent = (invested != 0) ? (pnl / invested * 100) : 0;
+
+        holder.tvInvested.setText("Invested: " + String.format("%.2f", invested));
+        holder.tvCurrent.setText("Current: " + String.format("%.2f", current));
+
+        holder.tvPnL.setText(String.format("%.2f (%.2f%%)", pnl, pnlPercent));
+        holder.tvPnL.setTextColor(pnl >= 0
+                ? holder.itemView.getContext().getColor(android.R.color.holo_green_light)
+                : holder.itemView.getContext().getColor(android.R.color.holo_red_light));
     }
+
 
     @Override
     public int getItemCount() {
         return stockList.size();
     }
 
-    static class PortfolioViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTicker, tvPrice, tvInvested, tvCurrent, tvPnL;
+    public static class PortfolioViewHolder extends RecyclerView.ViewHolder {
+        TextView tvTicker, tvPrice, tvQuantity, tvInvested, tvCurrent, tvPnL;
 
         public PortfolioViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTicker = itemView.findViewById(R.id.tvTicker);
             tvPrice = itemView.findViewById(R.id.tvPrice);
+            tvQuantity = itemView.findViewById(R.id.tvQuantity);
             tvInvested = itemView.findViewById(R.id.tvInvested);
             tvCurrent = itemView.findViewById(R.id.tvCurrent);
             tvPnL = itemView.findViewById(R.id.tvPnL);
