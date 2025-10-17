@@ -11,16 +11,9 @@
         android:id="@+id/recyclerView_crypto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        tools:listitem="@layout/item_crypto"
-        tools:visibility="visible"/>
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        tools:listitem="@layout/item_crypto"/>
 
-    <ProgressBar
-        android:id="@+id/crypto_progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:indeterminate="true"
-        />
 
 </FrameLayout>
