@@ -24,7 +24,7 @@ import vn.edu.usth.stockdashboard.data.model.StockItem;
 import vn.edu.usth.stockdashboard.adapter.StockAdapter;
 import vn.edu.usth.stockdashboard.data.sse.StockData;
 import vn.edu.usth.stockdashboard.data.sse.service.StockSseService;
-import vn.edu.usth.stockdashboard.viewmodel.SharedStockViewModel;
+import vn.edu.usth.stockdashboard.SharedStockViewModel;
 import vn.edu.usth.stockdashboard.StockDialog;
 
 
@@ -140,8 +140,15 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
     }
     private void openAddStockDialog(StockItem stockItem) {
         StockDialog dialog = StockDialog.newInstance(stockItem, currentUsername);
+
+        dialog.setOnPortfolioUpdatedListener(() -> {
+            SharedStockViewModel sharedVM = new ViewModelProvider(requireActivity()).get(SharedStockViewModel.class);
+            sharedVM.notifyPortfolioUpdated(); // 🔥 Báo cho PortfolioFragment biết
+        });
+
         dialog.show(getChildFragmentManager(), "AddStockDialog");
     }
+
     /**
      * Mở ChartFragment với mã chứng khoán được chọn
      * @param stockSymbol Mã chứng khoán (VD: "ACB", "VCB")
@@ -173,33 +180,19 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
         if (!isAdded() || newDataMap == null) return;
 
         requireActivity().runOnUiThread(() -> {
-            // Ẩn progress bar sau khi nhận dữ liệu đầu tiên
             if (!hasInitialData) {
                 hasInitialData = true;
                 progressBar.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
-                Log.d(TAG, "📊 First data received, hiding progress bar");
             }
 
-            // Update UI ngầm - không show/hide gì cả
-            int updatedCount = 0;
             for (int i = 0; i < stockList.size(); i++) {
-                StockItem currentUiItem = stockList.get(i);
-                StockData newDataFromServer = newDataMap.get(currentUiItem.getSymbol());
-
-                if (newDataFromServer != null) {
-                    if (hasDataChanged(currentUiItem, newDataFromServer)) {
-                        currentUiItem.updateFromData(newDataFromServer);
-                        stockAdapter.notifyItemChanged(i);
-                        updatedCount++;
-                    }
+                StockItem item = stockList.get(i);
+                StockData newData = newDataMap.get(item.getSymbol());
+                if (newData != null) {
+                    item.updateFromData(newData);
+                    stockAdapter.notifyItemChanged(i);
                 }
-            }
-
-            if (updatedCount > 0) {
-                Log.d(TAG, "🔄 Silent update: " + updatedCount + " items changed");
-                sharedStockViewModel.setStockList(new ArrayList<>(stockList));
-                Log.d(TAG, "🔄 Updated " + updatedCount + " items & synced with ViewModel");
             }
         });
     }
