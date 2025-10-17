@@ -123,7 +123,7 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
     }
 
     private void showStockOptionsDialog(StockItem stockItem) {
-        String[] options = {"📊 View Chart", "💼 Add to Portfolio"};
+        String[] options = {"View Chart", "Add to Portfolio"};
 
         new androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(stockItem.getSymbol())
@@ -147,7 +147,7 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
      * @param stockSymbol Mã chứng khoán (VD: "ACB", "VCB")
      */
     private void openChartFragment(String stockSymbol) {
-        Log.d(TAG, "📊 Opening chart for: " + stockSymbol);
+        Log.d(TAG, "Opening chart for: " + stockSymbol);
 
         ChartFragment chartFragment = ChartFragment.newInstance(stockSymbol);
 
