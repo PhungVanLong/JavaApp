@@ -194,6 +194,7 @@ public class DashboardFragment extends Fragment implements StockSseService.SseUp
                     stockAdapter.notifyItemChanged(i);
                 }
             }
+            sharedStockViewModel.setDashboardStocks(new ArrayList<>(stockList));
         });
     }
 

@@ -6,64 +6,79 @@
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    app:strokeColor="#99FFFFFF"
-    app:strokeWidth="2dp"
+    app:cardElevation="6dp"
+    app:strokeColor="#33FFFFFF"
+    app:strokeWidth="1dp"
     app:cardBackgroundColor="#1A000000">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="16dp">
 
-        <!-- Mã cổ phiếu -->
-        <TextView
-            android:id="@+id/tvTicker"
-            android:layout_width="wrap_content"
+        <!-- Row 1: Ticker + Giá hiện tại -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ACB"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/white" />
+            android:orientation="horizontal">
 
-        <!-- Giá hiện tại -->
-        <TextView
-            android:id="@+id/tvPrice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Price: 24.5"
-            android:textSize="14sp"
-            android:textColor="@android:color/white" />
+            <TextView
+                android:id="@+id/tvTicker"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="ACB"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white" />
 
-        <!-- Số lượng và giá mua trung bình -->
+            <TextView
+                android:id="@+id/tvPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$24.5"
+                android:textSize="16sp"
+                android:textColor="@android:color/white"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Row 2: Quantity & Avg Price -->
         <TextView
             android:id="@+id/tvQuantity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Quantity: 100 @ 22.5"
             android:textSize="14sp"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:layout_marginTop="4dp"/>
 
-        <!-- Giá trị đầu tư -->
-        <TextView
-            android:id="@+id/tvInvested"
-            android:layout_width="wrap_content"
+        <!-- Row 3: Invested & Current Value -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Invested: 2,250,000 VND"
-            android:textSize="14sp"
-            android:textColor="@android:color/white" />
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
 
-        <!-- Giá trị hiện tại -->
-        <TextView
-            android:id="@+id/tvCurrent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Current: 2,450,000 VND"
-            android:textSize="14sp"
-            android:textColor="@android:color/white" />
+            <TextView
+                android:id="@+id/tvInvested"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Invested: 2,250,000 VND"
+                android:textSize="14sp"
+                android:textColor="@android:color/white" />
 
-        <!-- Lãi/Lỗ -->
+            <TextView
+                android:id="@+id/tvCurrent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Current: 2,450,000 VND"
+                android:textSize="14sp"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+
+        <!-- Row 4: PnL -->
         <TextView
             android:id="@+id/tvPnL"
             android:layout_width="wrap_content"
@@ -72,7 +87,6 @@
             android:textColor="@android:color/holo_green_light"
             android:textSize="14sp"
             android:textStyle="bold"
-            android:paddingTop="4dp" />
-
+            android:layout_marginTop="4dp" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

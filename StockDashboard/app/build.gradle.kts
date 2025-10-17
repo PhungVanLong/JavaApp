@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation("androidx.fragment:fragment:1.6.1")
+    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     // Google Material (⚠️ Chỉ để 1 bản ổn định — tránh trùng)

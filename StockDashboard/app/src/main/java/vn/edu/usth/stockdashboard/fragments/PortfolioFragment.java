@@ -67,7 +67,7 @@ public class PortfolioFragment extends Fragment {
         // Khởi tạo ViewModel chia sẻ
         sharedStockViewModel = new ViewModelProvider(requireActivity()).get(SharedStockViewModel.class);
 
-// Sau đó mới đăng ký observer
+        // Sau đó mới đăng ký observer
         sharedStockViewModel.getDashboardStocks().observe(getViewLifecycleOwner(), list -> loadPortfolioSummary());
         sharedStockViewModel.getCryptoStocks().observe(getViewLifecycleOwner(), list -> loadPortfolioSummary());
         sharedStockViewModel.getPortfolioUpdated().observe(getViewLifecycleOwner(), flag -> {
@@ -80,13 +80,12 @@ public class PortfolioFragment extends Fragment {
         view.findViewById(R.id.btnRefreshPortfolio).setOnClickListener(v -> {
             // Load lại dữ liệu tổng hợp
             loadPortfolioSummary();
-            loadPortfolioFromDatabase();
         });
 
-        loadPortfolioFromDatabase();
         loadPortfolioSummary();
         return view;
     }
+
     // --- Load dữ liệu gộp từ database + dashboard + crypto ---
     private void loadPortfolioSummary() {
         if (databaseHelper == null || currentUsername == null) return;
@@ -101,27 +100,45 @@ public class PortfolioFragment extends Fragment {
                 double avgPrice = cursor.getDouble(2);
 
                 double investedValue = quantity * avgPrice;
-                double currentPrice = avgPrice * 1.2; // hoặc lấy giá live nếu muốn
+                double currentPrice = findRealTimePrice(ticker, avgPrice);
                 double currentValue = quantity * currentPrice;
 
                 StockItem item = new StockItem(ticker, investedValue, currentValue);
                 item.setQuantity((int) quantity);
+                item.setPrice(currentPrice); // ✅ SET PRICE để hiển thị đúng
                 stockList.add(item);
 
             } while (cursor.moveToNext());
             cursor.close();
         }
-        // 2️⃣ Load từ Dashboard live
-        List<StockItem> dashboard = sharedStockViewModel.getDashboardStocks().getValue();
-        if (dashboard != null) stockList.addAll(dashboard);
-
-        // 3️⃣ Load từ Crypto live
-        List<StockItem> crypto = sharedStockViewModel.getCryptoStocks().getValue();
-        if (crypto != null) stockList.addAll(crypto);
-
         adapter.notifyDataSetChanged();
         updateSummary();
     }
+
+    private double findRealTimePrice(String ticker, double defaultPrice) {
+        // 2️⃣ Load từ Dashboard live
+        List<StockItem> dashboard = sharedStockViewModel.getDashboardStocks().getValue();
+        if (dashboard != null) {
+            for (StockItem item : dashboard) {
+                if (item.getSymbol().equalsIgnoreCase(ticker)) {
+                    return item.getPrice(); // Giá real-time từ SSE
+                }
+            }
+        }
+
+        // 3️⃣ Load từ Crypto live
+        List<StockItem> crypto = sharedStockViewModel.getCryptoStocks().getValue();
+        if (crypto != null) {
+            for (StockItem item : crypto) {
+                if (item.getSymbol().equalsIgnoreCase(ticker)) {
+                    // ✅ SỬA: Ưu tiên lấy price, nếu = 0 mới lấy currentValue
+                    return item.getPrice() > 0 ? item.getPrice() : item.getCurrentValue();
+                }
+            }
+        }
+        return defaultPrice * 1.2;
+    }
+
     // --- Cập nhật summary ---
     private void updateSummary() {
         double totalInvested = 0;
@@ -146,33 +163,6 @@ public class PortfolioFragment extends Fragment {
                     getResources().getColor(android.R.color.holo_green_light) :
                     getResources().getColor(android.R.color.holo_red_light));
         }
-    }
-
-    private void loadPortfolioFromDatabase() {
-        if (databaseHelper == null || currentUsername == null) return;
-
-        stockList.clear();
-        Cursor cursor = databaseHelper.getPortfolioForUser(currentUsername);
-
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                String ticker = cursor.getString(0);
-                double quantity = cursor.getDouble(1);
-                double avgPrice = cursor.getDouble(2);
-
-                double investedValue = quantity * avgPrice;
-                double currentPrice = avgPrice * 1.2;
-                double currentValue = quantity * currentPrice;
-
-                StockItem item = new StockItem(ticker, investedValue, currentValue);
-                item.setQuantity((int) quantity);
-                stockList.add(item);
-
-            } while (cursor.moveToNext());
-            cursor.close();
-        }
-
-        adapter.notifyDataSetChanged();
     }
 
     // --- Public method để refresh từ ngoài ---

@@ -1,34 +1,38 @@
 package vn.edu.usth.stockdashboard.fragments;
 
 import android.content.*;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.*;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import androidx.appcompat.app.AlertDialog;
-import android.widget.EditText;
-import android.widget.Button;
-import android.widget.Toast;
+import androidx.recyclerview.widget.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import vn.edu.usth.stockdashboard.R;
+import vn.edu.usth.stockdashboard.SharedStockViewModel;
 import vn.edu.usth.stockdashboard.adapter.CryptoAdapter;
+import vn.edu.usth.stockdashboard.data.manager.PortfolioManager;
 import vn.edu.usth.stockdashboard.data.model.CryptoItem;
 import vn.edu.usth.stockdashboard.data.model.StockItem;
 import vn.edu.usth.stockdashboard.data.sse.service.CryptoSSEService;
-import vn.edu.usth.stockdashboard.data.manager.PortfolioManager;
 
 public class CryptoFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private CryptoAdapter adapter;
+    private final List<CryptoItem> cryptoList = new ArrayList<>();
     private BroadcastReceiver cryptoReceiver;
     private boolean receiverRegistered = false;
     private String currentUsername;
@@ -36,29 +40,27 @@ public class CryptoFragment extends Fragment {
             "dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt," +
             "filusdt,nearusdt,icpusdt,vetusdt";
 
-    private final List<CryptoItem> cryptoList = new ArrayList<>();
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_crypto, container, false);
 
-        // Lấy username hiện tại từ Intent hoặc mặc định "test"
+        // Lấy username từ Intent hoặc mặc định
         if (getActivity() != null) {
             currentUsername = getActivity().getIntent().getStringExtra("USERNAME");
-            if (currentUsername == null || currentUsername.isEmpty()) {
-                currentUsername = "test";
-            }
+            if (currentUsername == null || currentUsername.isEmpty()) currentUsername = "test";
         }
 
         recyclerView = view.findViewById(R.id.recyclerView_crypto);
-
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemViewCacheSize(20);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
         RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
         if (animator instanceof SimpleItemAnimator) {
@@ -68,22 +70,30 @@ public class CryptoFragment extends Fragment {
         adapter = new CryptoAdapter(cryptoList, this::showAddToPortfolioDialog);
         recyclerView.setAdapter(adapter);
 
-        startSSEService();
+        startForegroundSSEService();
         registerCryptoReceiver();
 
         return view;
     }
 
-    private void startSSEService() {
+    // Khởi chạy service đúng cách với Android 12+
+    private void startForegroundSSEService() {
         try {
-            Context ctx = requireContext().getApplicationContext();
-            Intent intent = new Intent(ctx, CryptoSSEService.class);
+            Intent intent = new Intent(requireContext(), CryptoSSEService.class);
             intent.putExtra("symbols", SYMBOLS);
-            ctx.startService(intent);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                requireContext().startForegroundService(intent);
+            } else {
+                requireContext().startService(intent);
+            }
+
         } catch (Exception e) {
-            Log.e("CryptoFragment", "Error starting SSE service", e);
+            Log.e("CryptoFragment", "Cannot start SSE service", e);
+            Toast.makeText(getContext(), "Cannot start crypto service", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     private void registerCryptoReceiver() {
         if (receiverRegistered) return;
@@ -102,8 +112,27 @@ public class CryptoFragment extends Fragment {
 
                 CryptoItem item = new CryptoItem(symbol, price, open, changePercent, time);
 
-                if (isAdded()) {
-                    requireActivity().runOnUiThread(() -> adapter.updateItem(item));
+                if (getActivity() != null && !getActivity().isFinishing()) {
+                    getActivity().runOnUiThread(() -> {
+                        adapter.updateItem(item);
+
+                        // ✅ THÊM ĐOẠN NÀY: Chuyển đổi CryptoItem -> StockItem và push lên ViewModel
+                        List<StockItem> cryptoStockList = new ArrayList<>();
+                        for (CryptoItem crypto : cryptoList) {
+                            // Giả sử quantity = 0 cho crypto chưa mua
+                            StockItem stock = new StockItem(
+                                    crypto.getSymbol(),
+                                    0, // investedValue
+                                    crypto.getPrice() // currentValue = giá hiện tại
+                            );
+                            stock.setQuantity(0);
+                            cryptoStockList.add(stock);
+                        }
+
+                        SharedStockViewModel viewModel = new ViewModelProvider(requireActivity())
+                                .get(SharedStockViewModel.class);
+                        viewModel.setCryptoStocks(cryptoStockList);
+                    });
                 }
             }
         };
@@ -113,7 +142,6 @@ public class CryptoFragment extends Fragment {
                 .registerReceiver(cryptoReceiver, filter);
         receiverRegistered = true;
     }
-
     private void showAddToPortfolioDialog(CryptoItem item) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Add " + item.getSymbol().toUpperCase() + " to Portfolio");
@@ -147,7 +175,6 @@ public class CryptoFragment extends Fragment {
                 StockItem stock = new StockItem(item.getSymbol(), invested, invested);
                 stock.setQuantity(quantity);
 
-                // Lưu vào database thông qua PortfolioManager
                 PortfolioManager.addStock(requireContext(), stock, currentUsername);
 
                 Toast.makeText(getContext(),
