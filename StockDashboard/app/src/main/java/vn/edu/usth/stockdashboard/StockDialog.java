@@ -17,6 +17,7 @@ import vn.edu.usth.stockdashboard.data.model.StockItem;
 import vn.edu.usth.stockdashboard.fragments.PortfolioFragment;
 
 public class StockDialog extends DialogFragment {
+    private Runnable onPortfolioUpdatedListener;
 
     public static StockDialog newInstance(StockItem stockItem, String username) {
         StockDialog dialog = new StockDialog();
@@ -84,6 +85,15 @@ public class StockDialog extends DialogFragment {
     private void notifyParentToRefresh() {
         if (getParentFragment() instanceof PortfolioFragment) {
             ((PortfolioFragment) getParentFragment()).refreshPortfolio();
+        }
+    }
+    public void setOnPortfolioUpdatedListener(Runnable listener) {
+        this.onPortfolioUpdatedListener = listener;
+    }
+
+    private void notifyPortfolioUpdated() {
+        if (onPortfolioUpdatedListener != null) {
+            onPortfolioUpdatedListener.run();
         }
     }
 

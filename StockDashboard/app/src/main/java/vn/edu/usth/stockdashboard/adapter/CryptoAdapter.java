@@ -18,9 +18,15 @@ import vn.edu.usth.stockdashboard.data.model.CryptoItem;
 
 public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder> {
     private final List<CryptoItem> cryptoList;
+    private final OnCryptoLongClickListener longClickListener; // thêm callback
+    public interface OnCryptoLongClickListener {
+        void onCryptoLongClick(CryptoItem item);
+    }
 
-    public CryptoAdapter(List<CryptoItem> cryptoList) {
+
+    public CryptoAdapter(List<CryptoItem> cryptoList, OnCryptoLongClickListener longClickListener) {
         this.cryptoList = cryptoList;
+        this.longClickListener = longClickListener;
         setHasStableIds(true); // Enable stable IDs
     }
 
@@ -84,7 +90,14 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
             intent.putExtra("changePercent", item.getChangePercent());
             v.getContext().startActivity(intent);
         });
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onCryptoLongClick(item);
+            }
+            return true;
+        });
     }
+
 
     private void updateItemData(ViewHolder holder, CryptoItem item) {
         // Set price with background highlight

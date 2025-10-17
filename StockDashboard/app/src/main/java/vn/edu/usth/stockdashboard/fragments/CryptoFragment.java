@@ -39,8 +39,6 @@ public class CryptoFragment extends Fragment {
             "dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt," +
             "filusdt,nearusdt,icpusdt,vetusdt";
 
-    private final List<CryptoItem> cryptoList = new ArrayList<>();
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -88,7 +86,11 @@ public class CryptoFragment extends Fragment {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 requireContext().startForegroundService(intent);
             } else {
-                requireContext().startService(intent);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    requireContext().startForegroundService(intent);
+                } else {
+                    requireContext().startService(intent);
+                }
             }
 
         } catch (Exception e) {
@@ -145,50 +147,70 @@ public class CryptoFragment extends Fragment {
         receiverRegistered = true;
     }
     private void showAddToPortfolioDialog(CryptoItem item) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        // Tạo dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Add " + item.getSymbol().toUpperCase() + " to Portfolio");
 
-        View dialogView = LayoutInflater.from(getContext())
-                .inflate(R.layout.dialog_add_portfolio, null);
-        EditText edtQuantity = dialogView.findViewById(R.id.edtQuantity);
+        // Inflate layout dialog_add_portfolio.xml
+        View dialogView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_add_stock, null);
+        EditText etQuantity = dialogView.findViewById(R.id.etQuantity);
+        EditText etPrice = dialogView.findViewById(R.id.etPrice);
         builder.setView(dialogView);
 
+        // Tạo dialog
         AlertDialog dialog = builder.create();
         dialog.setButton(AlertDialog.BUTTON_POSITIVE, "Add", (d, w) -> {});
         dialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", (d, w) -> dialog.dismiss());
         dialog.show();
 
+        // Gắn xử lý khi nhấn nút Add
         Button addBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
         addBtn.setOnClickListener(v -> {
-            String quantityStr = edtQuantity.getText().toString().trim();
-            if (quantityStr.isEmpty()) {
-                Toast.makeText(getContext(), "Please enter quantity", Toast.LENGTH_SHORT).show();
+            String quantityStr = etQuantity.getText().toString().trim();
+            String priceStr = etPrice.getText().toString().trim();
+
+            if (quantityStr.isEmpty() || priceStr.isEmpty()) {
+                Toast.makeText(requireContext(), "Please enter both quantity and price", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             try {
-                int quantity = Integer.parseInt(quantityStr);
-                if (quantity <= 0) {
-                    Toast.makeText(getContext(), "Quantity must be > 0", Toast.LENGTH_SHORT).show();
+                double quantity = Double.parseDouble(quantityStr);
+                double buyPrice = Double.parseDouble(priceStr);
+
+                if (quantity <= 0 || buyPrice <= 0) {
+                    Toast.makeText(requireContext(), "Values must be > 0", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                double invested = quantity * item.getPrice();
-                StockItem stock = new StockItem(item.getSymbol(), invested, invested);
+                double investedValue = quantity * buyPrice;
+                double currentValue = quantity * item.getPrice();
+
+                // Tạo StockItem
+                StockItem stock = new StockItem(item.getSymbol(), investedValue, currentValue);
                 stock.setQuantity(quantity);
 
+                // Lưu vào SQLite
                 PortfolioManager.addStock(requireContext(), stock, currentUsername);
 
-                Toast.makeText(getContext(),
+                Toast.makeText(requireContext(),
                         item.getSymbol().toUpperCase() + " added to portfolio!",
                         Toast.LENGTH_SHORT).show();
+
                 dialog.dismiss();
 
+                // Gửi tín hiệu cập nhật Portfolio cho ViewModel
+                SharedStockViewModel viewModel = new ViewModelProvider(requireActivity())
+                        .get(SharedStockViewModel.class);
+                viewModel.notifyPortfolioUpdated();
+
             } catch (NumberFormatException e) {
-                Toast.makeText(getContext(), "Invalid number", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Invalid number format", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
 
     @Override
     public void onDestroyView() {

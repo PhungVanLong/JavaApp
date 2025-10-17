@@ -24,7 +24,7 @@ import vn.edu.usth.stockdashboard.data.model.StockItem;
 import vn.edu.usth.stockdashboard.adapter.StockAdapter;
 import vn.edu.usth.stockdashboard.data.sse.StockData;
 import vn.edu.usth.stockdashboard.data.sse.service.StockSseService;
-import vn.edu.usth.stockdashboard.viewmodel.SharedStockViewModel;
+import vn.edu.usth.stockdashboard.SharedStockViewModel;
 import vn.edu.usth.stockdashboard.StockDialog;
 
 

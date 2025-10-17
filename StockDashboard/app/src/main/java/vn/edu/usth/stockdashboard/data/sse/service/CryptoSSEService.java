@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
+import android.content.pm.ServiceInfo;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -45,7 +46,13 @@ public class CryptoSSEService extends Service {
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .build();
 
-        startForeground(NOTIF_ID, notification);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIF_ID, notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        } else {
+            startForeground(NOTIF_ID, notification);
+        }
+
     }
 
     private void createNotificationChannel() {
