@@ -8,64 +8,49 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import androidx.appcompat.app.AlertDialog;
-import android.widget.EditText;
-import android.widget.Button;
-import android.widget.Toast;
-
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.adapter.CryptoAdapter;
 import vn.edu.usth.stockdashboard.data.model.CryptoItem;
-import vn.edu.usth.stockdashboard.data.model.StockItem;
 import vn.edu.usth.stockdashboard.data.sse.service.CryptoSSEService;
-import vn.edu.usth.stockdashboard.data.manager.PortfolioManager;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class CryptoFragment extends Fragment {
-
     private RecyclerView recyclerView;
     private CryptoAdapter adapter;
+    private final List<CryptoItem> cryptoList = new ArrayList<>();
     private BroadcastReceiver cryptoReceiver;
     private boolean receiverRegistered = false;
-    private String currentUsername;
+
     private static final String SYMBOLS = "btcusdt,ethusdt,bnbusdt,adausdt,xrpusdt,solusdt," +
             "dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt," +
             "filusdt,nearusdt,icpusdt,vetusdt";
 
-    private final List<CryptoItem> cryptoList = new ArrayList<>();
-
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_crypto, container, false);
 
-        // Lấy username hiện tại từ Intent hoặc mặc định "test"
-        if (getActivity() != null) {
-            currentUsername = getActivity().getIntent().getStringExtra("USERNAME");
-            if (currentUsername == null || currentUsername.isEmpty()) {
-                currentUsername = "test";
-            }
-        }
-
         recyclerView = view.findViewById(R.id.recyclerView_crypto);
 
+        // ✅ Optimize RecyclerView
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setItemViewCacheSize(20);
+        recyclerView.setHasFixedSize(true); // Items have fixed size
+        recyclerView.setItemViewCacheSize(20); // Cache more items
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
+        // ✅ Disable change animations to prevent flickering
         RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
         if (animator instanceof SimpleItemAnimator) {
             ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
         }
 
-        adapter = new CryptoAdapter(cryptoList, this::showAddToPortfolioDialog);
+        adapter = new CryptoAdapter(cryptoList);
         recyclerView.setAdapter(adapter);
 
         startSSEService();
@@ -102,71 +87,22 @@ public class CryptoFragment extends Fragment {
 
                 CryptoItem item = new CryptoItem(symbol, price, open, changePercent, time);
 
-                if (isAdded()) {
-                    requireActivity().runOnUiThread(() -> adapter.updateItem(item));
+                if (getActivity() != null && !getActivity().isFinishing()) {
+                    getActivity().runOnUiThread(() -> adapter.updateItem(item));
                 }
             }
         };
 
         IntentFilter filter = new IntentFilter("CRYPTO_UPDATE");
-        LocalBroadcastManager.getInstance(requireContext())
-                .registerReceiver(cryptoReceiver, filter);
+        requireActivity().registerReceiver(cryptoReceiver, filter, Context.RECEIVER_EXPORTED);
         receiverRegistered = true;
-    }
-
-    private void showAddToPortfolioDialog(CryptoItem item) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Add " + item.getSymbol().toUpperCase() + " to Portfolio");
-
-        View dialogView = LayoutInflater.from(getContext())
-                .inflate(R.layout.dialog_add_portfolio, null);
-        EditText edtQuantity = dialogView.findViewById(R.id.edtQuantity);
-        builder.setView(dialogView);
-
-        AlertDialog dialog = builder.create();
-        dialog.setButton(AlertDialog.BUTTON_POSITIVE, "Add", (d, w) -> {});
-        dialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", (d, w) -> dialog.dismiss());
-        dialog.show();
-
-        Button addBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-        addBtn.setOnClickListener(v -> {
-            String quantityStr = edtQuantity.getText().toString().trim();
-            if (quantityStr.isEmpty()) {
-                Toast.makeText(getContext(), "Please enter quantity", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            try {
-                int quantity = Integer.parseInt(quantityStr);
-                if (quantity <= 0) {
-                    Toast.makeText(getContext(), "Quantity must be > 0", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                double invested = quantity * item.getPrice();
-                StockItem stock = new StockItem(item.getSymbol(), invested, invested);
-                stock.setQuantity(quantity);
-
-                // Lưu vào database thông qua PortfolioManager
-                PortfolioManager.addStock(requireContext(), stock, currentUsername);
-
-                Toast.makeText(getContext(),
-                        item.getSymbol().toUpperCase() + " added to portfolio!",
-                        Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
-
-            } catch (NumberFormatException e) {
-                Toast.makeText(getContext(), "Invalid number", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         if (receiverRegistered) {
-            LocalBroadcastManager.getInstance(requireContext())
-                    .unregisterReceiver(cryptoReceiver);
+            requireActivity().unregisterReceiver(cryptoReceiver);
             receiverRegistered = false;
         }
     }

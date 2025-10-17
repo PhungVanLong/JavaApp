@@ -14,18 +14,9 @@ import androidx.fragment.app.DialogFragment;
 
 import vn.edu.usth.stockdashboard.data.DatabaseHelper;
 import vn.edu.usth.stockdashboard.data.model.StockItem;
+import vn.edu.usth.stockdashboard.fragments.PortfolioFragment;
 
 public class StockDialog extends DialogFragment {
-
-    public interface OnPortfolioUpdatedListener {
-        void onPortfolioUpdated();
-    }
-
-    private OnPortfolioUpdatedListener listener;
-
-    public void setOnPortfolioUpdatedListener(OnPortfolioUpdatedListener listener) {
-        this.listener = listener;
-    }
 
     public static StockDialog newInstance(StockItem stockItem, String username) {
         StockDialog dialog = new StockDialog();
@@ -36,6 +27,7 @@ public class StockDialog extends DialogFragment {
         dialog.setArguments(args);
         return dialog;
     }
+
 
     @NonNull
     @Override
@@ -71,7 +63,7 @@ public class StockDialog extends DialogFragment {
                         boolean success = db.addPortfolioItem(username, symbol, qty, buyPrice);
                         if (success) {
                             Toast.makeText(getContext(), "Added to portfolio", Toast.LENGTH_SHORT).show();
-                            if (listener != null) listener.onPortfolioUpdated();
+                            notifyParentToRefresh();
                         }
                     } catch (Exception e) {
                         Toast.makeText(getContext(), "Invalid input", Toast.LENGTH_SHORT).show();
@@ -81,7 +73,7 @@ public class StockDialog extends DialogFragment {
                     boolean removed = db.deletePortfolioItem(username, symbol);
                     if (removed) {
                         Toast.makeText(getContext(), "Removed from portfolio", Toast.LENGTH_SHORT).show();
-                        if (listener != null) listener.onPortfolioUpdated();
+                        notifyParentToRefresh();
                     } else {
                         Toast.makeText(getContext(), "Not found in portfolio", Toast.LENGTH_SHORT).show();
                     }
@@ -89,4 +81,11 @@ public class StockDialog extends DialogFragment {
                 .setNegativeButton("Cancel", null)
                 .create();
     }
+    private void notifyParentToRefresh() {
+        if (getParentFragment() instanceof PortfolioFragment) {
+            ((PortfolioFragment) getParentFragment()).refreshPortfolio();
+        }
+    }
+
+
 }
