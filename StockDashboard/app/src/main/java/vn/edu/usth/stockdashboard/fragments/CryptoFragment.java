@@ -65,7 +65,6 @@ public class CryptoFragment extends Fragment {
             ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
         }
 
-        adapter = new CryptoAdapter(cryptoList, this::showAddToPortfolioDialog);
         recyclerView.setAdapter(adapter);
 
         startSSEService();
