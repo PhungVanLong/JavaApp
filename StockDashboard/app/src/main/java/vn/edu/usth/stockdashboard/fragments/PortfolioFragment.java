@@ -16,7 +16,7 @@ import java.util.List;
 import vn.edu.usth.stockdashboard.data.DatabaseHelper;
 import android.database.Cursor;
 
-import vn.edu.usth.stockdashboard.PortfolioAdapter;
+import vn.edu.usth.stockdashboard.adapter.PortfolioAdapter;
 import vn.edu.usth.stockdashboard.R;
 
 import vn.edu.usth.stockdashboard.data.model.StockItem;
