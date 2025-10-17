@@ -15,6 +15,9 @@ import android.widget.EditText;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.adapter.CryptoAdapter;
 import vn.edu.usth.stockdashboard.data.model.CryptoItem;
@@ -22,27 +25,18 @@ import vn.edu.usth.stockdashboard.data.model.StockItem;
 import vn.edu.usth.stockdashboard.data.sse.service.CryptoSSEService;
 import vn.edu.usth.stockdashboard.data.manager.PortfolioManager;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 public class CryptoFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private CryptoAdapter adapter;
-
-    // ✅ Danh sách hiển thị
-    private final List<CryptoItem> cryptoList = new ArrayList<>();
-
-    // ✅ Map tạm để batch update
-    private final Map<String, CryptoItem> pendingUpdateMap = new HashMap<>();
-
     private BroadcastReceiver cryptoReceiver;
     private boolean receiverRegistered = false;
-    private Timer updateTimer;
-
+    private String currentUsername;
     private static final String SYMBOLS = "btcusdt,ethusdt,bnbusdt,adausdt,xrpusdt,solusdt," +
             "dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt," +
             "filusdt,nearusdt,icpusdt,vetusdt";
+
+    private final List<CryptoItem> cryptoList = new ArrayList<>();
 
     @Nullable
     @Override
@@ -51,15 +45,20 @@ public class CryptoFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_crypto, container, false);
 
+        // Lấy username hiện tại từ Intent hoặc mặc định "test"
+        if (getActivity() != null) {
+            currentUsername = getActivity().getIntent().getStringExtra("USERNAME");
+            if (currentUsername == null || currentUsername.isEmpty()) {
+                currentUsername = "test";
+            }
+        }
+
         recyclerView = view.findViewById(R.id.recyclerView_crypto);
 
-        // ✅ RecyclerView setup
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setItemViewCacheSize(20);
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
 
         RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
         if (animator instanceof SimpleItemAnimator) {
@@ -71,12 +70,10 @@ public class CryptoFragment extends Fragment {
 
         startSSEService();
         registerCryptoReceiver();
-        startBatchUpdateTimer();
 
         return view;
     }
 
-    // ✅ Start SSE service
     private void startSSEService() {
         try {
             Context ctx = requireContext().getApplicationContext();
@@ -88,7 +85,6 @@ public class CryptoFragment extends Fragment {
         }
     }
 
-    // ✅ Register local broadcast receiver
     private void registerCryptoReceiver() {
         if (receiverRegistered) return;
 
@@ -106,9 +102,8 @@ public class CryptoFragment extends Fragment {
 
                 CryptoItem item = new CryptoItem(symbol, price, open, changePercent, time);
 
-                // ✅ Lưu vào map để batch update
-                synchronized (pendingUpdateMap) {
-                    pendingUpdateMap.put(symbol, item);
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> adapter.updateItem(item));
                 }
             }
         };
@@ -119,26 +114,6 @@ public class CryptoFragment extends Fragment {
         receiverRegistered = true;
     }
 
-    // ✅ Timer batch update UI
-    private void startBatchUpdateTimer() {
-        updateTimer = new Timer();
-        updateTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                List<CryptoItem> batchList;
-                synchronized (pendingUpdateMap) {
-                    if (pendingUpdateMap.isEmpty()) return;
-                    batchList = new ArrayList<>(pendingUpdateMap.values());
-                    pendingUpdateMap.clear();
-                }
-                if (isAdded()) {
-                    requireActivity().runOnUiThread(() -> adapter.updateList(batchList));
-                }
-            }
-        }, 0, 200); // update mỗi 200ms
-    }
-
-    // ✅ Dialog thêm vào portfolio
     private void showAddToPortfolioDialog(CryptoItem item) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Add " + item.getSymbol().toUpperCase() + " to Portfolio");
@@ -160,6 +135,7 @@ public class CryptoFragment extends Fragment {
                 Toast.makeText(getContext(), "Please enter quantity", Toast.LENGTH_SHORT).show();
                 return;
             }
+
             try {
                 int quantity = Integer.parseInt(quantityStr);
                 if (quantity <= 0) {
@@ -171,7 +147,8 @@ public class CryptoFragment extends Fragment {
                 StockItem stock = new StockItem(item.getSymbol(), invested, invested);
                 stock.setQuantity(quantity);
 
-                PortfolioManager.addStock(requireContext(), stock);
+                // Lưu vào database thông qua PortfolioManager
+                PortfolioManager.addStock(requireContext(), stock, currentUsername);
 
                 Toast.makeText(getContext(),
                         item.getSymbol().toUpperCase() + " added to portfolio!",
@@ -191,10 +168,6 @@ public class CryptoFragment extends Fragment {
             LocalBroadcastManager.getInstance(requireContext())
                     .unregisterReceiver(cryptoReceiver);
             receiverRegistered = false;
-        }
-        if (updateTimer != null) {
-            updateTimer.cancel();
-            updateTimer = null;
         }
     }
 }
