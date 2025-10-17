@@ -37,6 +37,10 @@
         <activity android:name=".ChartActivity"
             android:exported="true"
             android:label=""/>
+        <!-- Thêm activity -->
+        <activity
+            android:name=".CryptoDetailActivity"
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
 
 
         <service
