@@ -1,16 +1,9 @@
 package vn.edu.usth.stockdashboard.fragments;
 
 import android.content.*;
-import android.os.Build;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
 import android.util.Log;
 import android.view.*;
 import android.widget.Button;
@@ -24,20 +17,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.*;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.SimpleItemAnimator;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import vn.edu.usth.stockdashboard.CryptoDetailActivity;
 import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.SharedStockViewModel;
 import vn.edu.usth.stockdashboard.adapter.CryptoAdapter;
@@ -45,32 +28,37 @@ import vn.edu.usth.stockdashboard.data.model.CryptoItem;
 import vn.edu.usth.stockdashboard.data.model.StockItem;
 import vn.edu.usth.stockdashboard.data.sse.service.CryptoSSEService;
 import vn.edu.usth.stockdashboard.data.manager.PortfolioManager;
-
+import vn.edu.usth.stockdashboard.CryptoDetailActivity;
 
 public class CryptoFragment extends Fragment {
+    private static final String TAG = "CryptoFragment";
+    private static final String SYMBOLS = "btcusdt,ethusdt,bnbusdt,adausdt,xrpusdt,solusdt," +
+            "dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt," +
+            "filusdt,nearusdt,icpusdt,vetusdt";
+
+    private String currentUsername;
     private RecyclerView recyclerView;
     private CryptoAdapter adapter;
     private final List<CryptoItem> cryptoList = new ArrayList<>();
     private BroadcastReceiver cryptoReceiver;
+    private boolean receiverRegistered = false;
+    private SharedStockViewModel sharedStockViewModel;
     private Intent sseIntent;
-
-    private static final String SYMBOLS = "btcusdt,ethusdt,bnbusdt,adausdt,xrpusdt,solusdt,"
-            + "dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt,"
-            + "filusdt,nearusdt,icpusdt,vetusdt";
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_crypto, container, false);
-
+        recyclerView = view.findViewById(R.id.recyclerView_crypto);
         // Lấy username từ Intent hoặc mặc định
         if (getActivity() != null) {
             currentUsername = getActivity().getIntent().getStringExtra("USERNAME");
-            if (currentUsername == null || currentUsername.isEmpty()) currentUsername = "test";
+            if (currentUsername == null || currentUsername.isEmpty()) {
+                currentUsername = "test";
+            }
         }
-
+        sharedStockViewModel = new ViewModelProvider(requireActivity()).get(SharedStockViewModel.class);
         recyclerView = view.findViewById(R.id.recyclerView_crypto);
 
         // Optimize RecyclerView
@@ -90,6 +78,10 @@ public class CryptoFragment extends Fragment {
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setHasFixedSize(true);
+        recyclerView.setItemViewCacheSize(20);
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+
         // Tối ưu hiệu năng, không chạy animation khi dữ liệu thay đổi
         // Disable change animations to prevent flickering
         RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
@@ -99,14 +91,9 @@ public class CryptoFragment extends Fragment {
     }
 
     private void setupAdapter() {
-        adapter = new CryptoAdapter(cryptoList);
         adapter = new CryptoAdapter(cryptoList, this::showAddToPortfolioDialog);
         recyclerView.setAdapter(adapter);
 
-        startForegroundSSEService();
-        registerCryptoReceiver();
-
-        return view;
         adapter.setOnItemClickListener(item -> {
             Intent intent = new Intent(getContext(), CryptoDetailActivity.class);
             intent.putExtra("symbol", item.getSymbol());
@@ -116,30 +103,9 @@ public class CryptoFragment extends Fragment {
         });
     }
 
-    // Khởi chạy service đúng cách với Android 12+
-    private void startForegroundSSEService() {
-        try {
-            Intent intent = new Intent(requireContext(), CryptoSSEService.class);
-            intent.putExtra("symbols", SYMBOLS);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                requireContext().startForegroundService(intent);
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    requireContext().startForegroundService(intent);
-                } else {
-                    requireContext().startService(intent);
-                }
-            }
-
-        } catch (Exception e) {
-            Log.e("CryptoFragment", "Cannot start SSE service", e);
-            Toast.makeText(getContext(), "Cannot start crypto service", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     private void registerCryptoReceiver() {
         if (receiverRegistered) return;
+    }
 
     // Tách logic khởi tạo receiver ra riêng
     private void setupCryptoReceiver() {
@@ -159,55 +125,65 @@ public class CryptoFragment extends Fragment {
 
                 if (getActivity() != null && !getActivity().isFinishing()) {
                     getActivity().runOnUiThread(() -> {
+                        // ✅ Update adapter
                         adapter.updateItem(item);
 
-                        // ✅ THÊM ĐOẠN NÀY: Chuyển đổi CryptoItem -> StockItem và push lên ViewModel
-                        List<StockItem> cryptoStockList = new ArrayList<>();
-                        for (CryptoItem crypto : cryptoList) {
-                            // Giả sử quantity = 0 cho crypto chưa mua
-                            StockItem stock = new StockItem(
-                                    crypto.getSymbol(),
-                                    0, // investedValue
-                                    crypto.getPrice() // currentValue = giá hiện tại
-                            );
-                            stock.setQuantity(0);
-                            cryptoStockList.add(stock);
-                        }
-
-                        SharedStockViewModel viewModel = new ViewModelProvider(requireActivity())
-                                .get(SharedStockViewModel.class);
-                        viewModel.setCryptoStocks(cryptoStockList);
+                        // ✅ Push lên ViewModel
+                        updateViewModel();
                     });
                 }
-                // Không cần check getActivity() vì receiver chỉ chạy khi fragment is resumed
-                requireActivity().runOnUiThread(() -> adapter.updateItem(item));
             }
         };
+    }  private void updateViewModel() {
+        List<StockItem> cryptoStockList = new ArrayList<>();
+
+        for (CryptoItem crypto : cryptoList) {
+            StockItem stock = new StockItem(
+                    crypto.getSymbol(),
+                    crypto.getPrice(),  // investedValue
+                    crypto.getPrice()   // currentValue
+            );
+            stock.setPrice(crypto.getPrice()); // ✅ QUAN TRỌNG: Set price
+            stock.setQuantity(1);
+            cryptoStockList.add(stock);
+        }
+
+        sharedStockViewModel.setCryptoStocks(cryptoStockList);
+
+        // Log mỗi 5 lần update
+        if (cryptoStockList.size() % 5 == 0 && !cryptoStockList.isEmpty()) {
+            Log.d(TAG, "📤 Pushed " + cryptoStockList.size() + " crypto to ViewModel");
+        }
     }
 
     // Bắt đầu các tác vụ khi Fragment được hiển thị
     @Override
     public void onResume() {
         super.onResume();
-        // 1. Đăng ký receiver để bắt đầu lắng nghe
-        IntentFilter filter = new IntentFilter("CRYPTO_UPDATE");
-        LocalBroadcastManager.getInstance(requireContext())
-                .registerReceiver(cryptoReceiver, filter);
-        receiverRegistered = true;
-        requireActivity().registerReceiver(cryptoReceiver, filter, Context.RECEIVER_EXPORTED);
+        if (!receiverRegistered) {
+            IntentFilter filter = new IntentFilter("CRYPTO_UPDATE");
+            LocalBroadcastManager.getInstance(requireContext())
+                    .registerReceiver(cryptoReceiver, filter);
+            receiverRegistered = true;
+            Log.d(TAG, "✅ Receiver registered");
+        }
+
         // 2. Khởi động service để lấy dữ liệu
         startSSEService();
     }
     private void showAddToPortfolioDialog(CryptoItem item) {
-        // Tạo dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Add " + item.getSymbol().toUpperCase() + " to Portfolio");
 
-        // Inflate layout dialog_add_portfolio.xml
+        // Inflate layout dialog_add_stock.xml
         View dialogView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.dialog_add_stock, null);
         EditText etQuantity = dialogView.findViewById(R.id.etQuantity);
         EditText etPrice = dialogView.findViewById(R.id.etPrice);
+
+        // ✅ Pre-fill giá hiện tại
+        etPrice.setText(String.format(Locale.US, "%.2f", item.getPrice()));
+
         builder.setView(dialogView);
 
         // Tạo dialog
@@ -242,6 +218,7 @@ public class CryptoFragment extends Fragment {
                 // Tạo StockItem
                 StockItem stock = new StockItem(item.getSymbol(), investedValue, currentValue);
                 stock.setQuantity(quantity);
+                stock.setPrice(item.getPrice()); // ✅ Set price
 
                 // Lưu vào SQLite
                 PortfolioManager.addStock(requireContext(), stock, currentUsername);
@@ -252,10 +229,8 @@ public class CryptoFragment extends Fragment {
 
                 dialog.dismiss();
 
-                // Gửi tín hiệu cập nhật Portfolio cho ViewModel
-                SharedStockViewModel viewModel = new ViewModelProvider(requireActivity())
-                        .get(SharedStockViewModel.class);
-                viewModel.notifyPortfolioUpdated();
+                // Gửi tín hiệu cập nhật Portfolio
+                sharedStockViewModel.notifyPortfolioUpdated();
 
             } catch (NumberFormatException e) {
                 Toast.makeText(requireContext(), "Invalid number format", Toast.LENGTH_SHORT).show();
@@ -263,8 +238,6 @@ public class CryptoFragment extends Fragment {
         });
     }
 
-
-    // Dừng các tác vụ khi Fragment bị che khuất
     @Override
     public void onPause() {
         super.onPause();
@@ -275,15 +248,27 @@ public class CryptoFragment extends Fragment {
     }
 
     private void startSSEService() {
-        Context ctx = requireContext().getApplicationContext();
-        sseIntent = new Intent(ctx, CryptoSSEService.class);
-        sseIntent.putExtra("symbols", SYMBOLS);
-        ctx.startService(sseIntent);
+        try {
+            Context ctx = requireContext().getApplicationContext();
+            sseIntent = new Intent(ctx, CryptoSSEService.class);
+            sseIntent.putExtra("symbols", SYMBOLS);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ctx.startForegroundService(sseIntent);
+            } else {
+                ctx.startService(sseIntent);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, " Cannot start SSE service", e);
+            Toast.makeText(getContext(), "Cannot start crypto service", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void stopSSEService() {
         if (sseIntent != null) {
             requireContext().stopService(sseIntent);
+        }
+    }
     public void onDestroyView() {
         super.onDestroyView();
         if (receiverRegistered) {

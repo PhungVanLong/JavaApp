@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#1A1A1A"
-    android:fitsSystemWindows="true">
+    >
 
     <!-- Header -->
     <RelativeLayout

@@ -2,6 +2,7 @@ package vn.edu.usth.stockdashboard.adapter;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.graphics.Color;
 import android.view.*;
 import android.widget.TextView;
@@ -12,6 +13,7 @@ import java.util.*;
 
 import vn.edu.usth.stockdashboard.R;
 import vn.edu.usth.stockdashboard.data.model.CryptoItem;
+import vn.edu.usth.stockdashboard.CryptoDetailActivity;
 
 public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder> {
     private final List<CryptoItem> cryptoList;
@@ -65,20 +67,22 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder h, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        onBindViewHolder(holder, position, Collections.emptyList());
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
         CryptoItem item = cryptoList.get(position);
 
-        h.ctSymbol.setText(item.getSymbol().toUpperCase().replace("USDT", "/USDT"));
-        h.ctPrice.setText(String.format("$%.2f", item.getPrice()));
-        h.ctTime.setText(item.getTime());
-        // check sự tồn tại, nếu có thì chỉ update data
         if (payloads != null && !payloads.isEmpty()) {
-            updateItemData(holder, item);
+            updateItemData(holder, item); // chỉ update dữ liệu thay đổi
             return;
         }
 
         // Full bind
         holder.ctSymbol.setText(item.getSymbol().toUpperCase().replace("USDT", "/USDT"));
+        holder.ctPrice.setText(String.format("$%.2f", item.getPrice()));
         holder.ctTime.setText(item.getTime());
 
         if (holder.ctVolume != null) {
@@ -87,7 +91,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
 
         updateItemData(holder, item);
 
-        // Add click listener to open detail activity
+        // Click listener
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(v.getContext(), CryptoDetailActivity.class);
             intent.putExtra("symbol", item.getSymbol());
@@ -97,6 +101,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
             intent.putExtra("changePercent", item.getChangePercent());
             v.getContext().startActivity(intent);
         });
+
         holder.itemView.setOnLongClickListener(v -> {
             if (longClickListener != null) {
                 longClickListener.onCryptoLongClick(item);
@@ -104,6 +109,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
             return true;
         });
     }
+
 
 
     private void updateItemData(ViewHolder holder, CryptoItem item) {
@@ -114,28 +120,28 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         String changeText;
         if (item.getChangePercent() > 0) {
             changeText = String.format("▲ +%.2f%%", item.getChangePercent());
-            h.ctChange.setTextColor(Color.parseColor("#4CAF50")); // xanh
+            holder.ctChange.setTextColor(Color.parseColor("#4CAF50")); // xanh
         } else if (item.getChangePercent() < 0) {
             changeText = String.format("▼ %.2f%%", item.getChangePercent());
-            h.ctChange.setTextColor(Color.parseColor("#F44336")); // đỏ
+            holder.ctChange.setTextColor(Color.parseColor("#F44336")); // đỏ
         } else {
             changeText = String.format("%.2f%%", item.getChangePercent());
-            h.ctChange.setTextColor(Color.GRAY);
+            holder.ctChange.setTextColor(Color.GRAY);
         }
-        h.ctChange.setText(changeText);
+        holder.ctChange.setText(changeText);
 
         // ✅ Flash màu khi giá thay đổi
         Double last = lastPrices.get(item.getSymbol());
         if (last != null) {
             if (item.getPrice() > last)
-                flashColor(h.ctPrice, Color.WHITE, Color.parseColor("#4CAF50"));
+                flashColor(holder.ctPrice, Color.WHITE, Color.parseColor("#4CAF50"));
             else if (item.getPrice() < last)
-                flashColor(h.ctPrice, Color.WHITE, Color.parseColor("#F44336"));
+                flashColor(holder.ctPrice, Color.WHITE, Color.parseColor("#F44336"));
         }
         lastPrices.put(item.getSymbol(), item.getPrice());
 
         // ✅ Sự kiện click item
-        h.itemView.setOnClickListener(v -> {
+        holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onItemClick(item);
         });
     }
@@ -164,6 +170,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         nameMap.put("vetusdt", "VeChain");
 
         return nameMap.getOrDefault(symbol.toLowerCase(), symbol.toUpperCase());
+    }
     private void flashColor(TextView tv, int from, int to) {
         ValueAnimator animator = ValueAnimator.ofObject(new ArgbEvaluator(), to, from);
         animator.setDuration(500);
