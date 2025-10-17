@@ -5,21 +5,6 @@
     android:orientation="vertical"
     android:padding="20sp">
 
-    <ImageView
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:contentDescription="@string/cont_des_image"
-        android:src="@drawable/logo_app"
-        />
 
-    <TextView
-        android:id="@+id/title_Dashboard"
-        android:layout_marginStart="50dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/dashboard"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="@color/white"/>
 
 </RelativeLayout>
