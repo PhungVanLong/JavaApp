@@ -1,5 +1,6 @@
 package vn.edu.usth.stockdashboard.fragments;
 
+import android.app.Activity;
 import android.content.*;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.*;
 
 import vn.edu.usth.stockdashboard.R;
+import vn.edu.usth.stockdashboard.CryptoDetailActivity;
 import vn.edu.usth.stockdashboard.adapter.CryptoAdapter;
 import vn.edu.usth.stockdashboard.data.model.CryptoItem;
 import vn.edu.usth.stockdashboard.data.sse.service.CryptoSSEService;
@@ -24,27 +26,24 @@ public class CryptoFragment extends Fragment {
     private BroadcastReceiver cryptoReceiver;
     private boolean receiverRegistered = false;
 
-    private static final String SYMBOLS = "btcusdt,ethusdt,bnbusdt,adausdt,xrpusdt,solusdt," +
-            "dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt," +
-            "filusdt,nearusdt,icpusdt,vetusdt";
+    private static final String SYMBOLS = "btcusdt,ethusdt,bnbusdt,adausdt,xrpusdt,solusdt,"
+            + "dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt,"
+            + "filusdt,nearusdt,icpusdt,vetusdt";
+
+    private Intent sseIntent;
+    private static final int DETAIL_REQUEST_CODE = 1234;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_crypto, container, false);
-
         recyclerView = view.findViewById(R.id.recyclerView_crypto);
 
-        // ✅ Optimize RecyclerView
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true); // Items have fixed size
-        recyclerView.setItemViewCacheSize(20); // Cache more items
-        recyclerView.setDrawingCacheEnabled(true);
-        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setHasFixedSize(true);
 
-        // ✅ Disable change animations to prevent flickering
         RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
         if (animator instanceof SimpleItemAnimator) {
             ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
@@ -53,20 +52,30 @@ public class CryptoFragment extends Fragment {
         adapter = new CryptoAdapter(cryptoList);
         recyclerView.setAdapter(adapter);
 
-        startSSEService();
-        registerCryptoReceiver();
+        // ✅ Bắt sự kiện click để mở detail
+        adapter.setOnItemClickListener(item -> {
+            stopSSEService(); // Dừng SSE khi vào detail
+            Intent intent = new Intent(getContext(), CryptoDetailActivity.class);
+            intent.putExtra("symbol", item.getSymbol());
+            intent.putExtra("name", item.getSymbol().toUpperCase());
+            startActivityForResult(intent, DETAIL_REQUEST_CODE);
+        });
 
+        registerCryptoReceiver();
+        startSSEService();
         return view;
     }
 
     private void startSSEService() {
-        try {
-            Context ctx = requireContext().getApplicationContext();
-            Intent intent = new Intent(ctx, CryptoSSEService.class);
-            intent.putExtra("symbols", SYMBOLS);
-            ctx.startService(intent);
-        } catch (Exception e) {
-            Log.e("CryptoFragment", "Error starting SSE service", e);
+        Context ctx = requireContext().getApplicationContext();
+        sseIntent = new Intent(ctx, CryptoSSEService.class);
+        sseIntent.putExtra("symbols", SYMBOLS);
+        ctx.startService(sseIntent);
+    }
+
+    private void stopSSEService() {
+        if (sseIntent != null) {
+            requireContext().stopService(sseIntent);
         }
     }
 
@@ -86,8 +95,7 @@ public class CryptoFragment extends Fragment {
                         .format(new Date(timestamp * 1000));
 
                 CryptoItem item = new CryptoItem(symbol, price, open, changePercent, time);
-
-                if (getActivity() != null && !getActivity().isFinishing()) {
+                if (getActivity() != null) {
                     getActivity().runOnUiThread(() -> adapter.updateItem(item));
                 }
             }
@@ -99,11 +107,33 @@ public class CryptoFragment extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        stopSSEService();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        startSSEService();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == DETAIL_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // ✅ Khi quay lại fragment thì restart SSE
+            startSSEService();
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
         if (receiverRegistered) {
             requireActivity().unregisterReceiver(cryptoReceiver);
             receiverRegistered = false;
         }
+        stopSSEService();
     }
 }
