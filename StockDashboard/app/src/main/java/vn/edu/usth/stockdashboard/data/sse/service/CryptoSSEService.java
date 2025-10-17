@@ -95,7 +95,7 @@ public class CryptoSSEService extends Service {
         HttpURLConnection connection = null;
         BufferedReader reader = null;
         try {
-            URL url = new URL("https://your-sse-endpoint.com/stream?symbols=" + symbols);
+            URL url = new URL("https://crypto-server-xqv5.onrender.com/events?symbols=" + symbols);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Accept", "text/event-stream");

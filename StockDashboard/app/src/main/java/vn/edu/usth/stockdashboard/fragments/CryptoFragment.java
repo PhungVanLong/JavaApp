@@ -1,6 +1,7 @@
 package vn.edu.usth.stockdashboard.fragments;
 
 import android.content.*;
+import android.widget.TextView;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -95,11 +96,34 @@ public class CryptoFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         adapter.setOnItemClickListener(item -> {
-            Intent intent = new Intent(getContext(), CryptoDetailActivity.class);
-            intent.putExtra("symbol", item.getSymbol());
-            // Lấy tên đầy đủ thay vì chỉ symbol
-            intent.putExtra("name", item.getSymbol().replace("usdt", "").toUpperCase());
-            startActivity(intent);
+            // Inflate dialog tùy chỉnh
+            View dialogView = LayoutInflater.from(requireContext())
+                    .inflate(R.layout.dialog_crypto_options, null);
+
+            TextView tvTitle = dialogView.findViewById(R.id.tvCryptoTitle);
+            tvTitle.setText(item.getSymbol().toUpperCase());
+
+            Button btnChart = dialogView.findViewById(R.id.btnViewChart);
+            Button btnAdd = dialogView.findViewById(R.id.btnAddPortfolio);
+
+            AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                    .setView(dialogView)
+                    .create();
+
+            btnChart.setOnClickListener(v -> {
+                Intent intent = new Intent(getContext(), CryptoDetailActivity.class);
+                intent.putExtra("symbol", item.getSymbol());
+                intent.putExtra("name", item.getSymbol().replace("usdt", "").toUpperCase());
+                startActivity(intent);
+                dialog.dismiss();
+            });
+
+            btnAdd.setOnClickListener(v -> {
+                showAddToPortfolioDialog(item);
+                dialog.dismiss();
+            });
+
+            dialog.show();
         });
     }
 
@@ -222,6 +246,7 @@ public class CryptoFragment extends Fragment {
 
                 // Lưu vào SQLite
                 PortfolioManager.addStock(requireContext(), stock, currentUsername);
+                sharedStockViewModel.notifyPortfolioUpdated();
 
                 Toast.makeText(requireContext(),
                         item.getSymbol().toUpperCase() + " added to portfolio!",

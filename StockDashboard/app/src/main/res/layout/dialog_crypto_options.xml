@@ -1,6 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:id="@+id/tvCryptoTitle"
+        android:text="BTCUSDT"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnViewChart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Chart"
+        android:drawableLeft="@android:drawable/ic_menu_view"
+        android:drawablePadding="8dp"
+        android:padding="12dp"/>
+
+    <Button
+        android:id="@+id/btnAddPortfolio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add to Portfolio"
+        android:drawableLeft="@android:drawable/ic_input_add"
+        android:drawablePadding="8dp"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"/>
+
+</LinearLayout>

@@ -8,6 +8,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import java.util.List;
+import java.util.ArrayList;
+
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -76,12 +79,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        Log.w(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
-        // drop 2 bảng để tránh lỗi và tạo lại toàn bộ cấu trúc mới
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PORTFOLIO);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-        onCreate(db);
+        Log.w(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion);
+
+        if (oldVersion < 3) { // Giả sử version 3 mới thêm cột P_username
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_PORTFOLIO + " ADD COLUMN " + P_COL_2 + " TEXT");
+                Log.d(TAG, "Column " + P_COL_2 + " added to " + TABLE_PORTFOLIO);
+            } catch (Exception e) {
+                Log.e(TAG, "Error adding column " + P_COL_2, e);
+            }
+        }
+
+        // Nếu sau này tăng version tiếp, có thể thêm các điều kiện khác
     }
+
 
     public boolean insertData(String username, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -222,7 +233,71 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         );
         return cursor;
     }
+    // Lấy danh sách ticker không có trong danh sách trackedSymbols
+    public List<String> getUntrackedStocks(String username, List<String> trackedSymbols) {
+        List<String> untracked = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < trackedSymbols.size(); i++) {
+            placeholders.append("?");
+            if (i < trackedSymbols.size() - 1) placeholders.append(",");
+        }
+
+        String selection;
+        String[] selectionArgs;
+
+        if (trackedSymbols.isEmpty()) {
+            selection = P_COL_2 + "=?";
+            selectionArgs = new String[]{username};
+        } else {
+            selection = P_COL_2 + "=? AND " + P_COL_3 + " NOT IN (" + placeholders.toString() + ")";
+            List<String> argsList = new ArrayList<>();
+            argsList.add(username);
+            argsList.addAll(trackedSymbols);
+            selectionArgs = argsList.toArray(new String[0]);
+        }
+
+        Cursor cursor = db.query(TABLE_PORTFOLIO, new String[]{P_COL_3}, selection, selectionArgs, null, null, null);
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                untracked.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+        db.close();
+        return untracked;
+    }
+    // Xóa tất cả ticker không có trong danh sách trackedSymbols
+    public int deleteUntrackedStocks(String username, List<String> trackedSymbols) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        StringBuilder placeholders = new StringBuilder();
+        for (int i = 0; i < trackedSymbols.size(); i++) {
+            placeholders.append("?");
+            if (i < trackedSymbols.size() - 1) placeholders.append(",");
+        }
+
+        String whereClause;
+        String[] whereArgs;
+
+        if (trackedSymbols.isEmpty()) {
+            whereClause = P_COL_2 + "=?";
+            whereArgs = new String[]{username};
+        } else {
+            whereClause = P_COL_2 + "=? AND " + P_COL_3 + " NOT IN (" + placeholders.toString() + ")";
+            List<String> argsList = new ArrayList<>();
+            argsList.add(username);
+            argsList.addAll(trackedSymbols);
+            whereArgs = argsList.toArray(new String[0]);
+        }
+
+        int deletedCount = db.delete(TABLE_PORTFOLIO, whereClause, whereArgs);
+        db.close();
+        return deletedCount;
+    }
+
 }
+
 
 
 

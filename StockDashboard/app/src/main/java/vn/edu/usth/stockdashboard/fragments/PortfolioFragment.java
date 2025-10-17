@@ -4,7 +4,6 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.widget.TextView;
 
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -16,19 +15,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
 import java.util.ArrayList;
 import java.util.List;
 
 import vn.edu.usth.stockdashboard.data.DatabaseHelper;
-import android.database.Cursor;
-
 import vn.edu.usth.stockdashboard.adapter.PortfolioAdapter;
-import vn.edu.usth.stockdashboard.R;
-import vn.edu.usth.stockdashboard.adapter.PortfolioAdapter;
-import vn.edu.usth.stockdashboard.data.DatabaseHelper;
 import vn.edu.usth.stockdashboard.data.model.StockItem;
 import vn.edu.usth.stockdashboard.SharedStockViewModel;
+import vn.edu.usth.stockdashboard.R;
+
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 
 public class PortfolioFragment extends Fragment {
 
@@ -37,44 +37,56 @@ public class PortfolioFragment extends Fragment {
     private List<StockItem> stockList;
     private DatabaseHelper databaseHelper;
     private String currentUsername;
-    private TextView tvTotalInvested;
-    private TextView tvTotalCurrent;
-    private TextView tvTotalPnL;
+    private TextView tvTotalInvested, tvTotalCurrent, tvTotalPnL;
     private SharedStockViewModel sharedStockViewModel;
+
+    // Chart
+    private LineChart summaryChart;
+    private LineDataSet lineDataSet;
+    private LineData lineData;
+    private int xIndex = 0; // trục X tăng dần
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.fragment_portfolio, container, false);
 
-        // 1. Lấy username hiện tại
-        if (getActivity() != null) {
-            currentUsername = getActivity().getIntent().getStringExtra("USERNAME");
-            if (currentUsername == null || currentUsername.isEmpty()) {
-                currentUsername = "test";
-            }
-        }
+        // Username
+        currentUsername = getActivity() != null ?
+                getActivity().getIntent().getStringExtra("USERNAME") : "test";
+        if (currentUsername == null || currentUsername.isEmpty()) currentUsername = "test";
 
-        // 2. Khởi tạo DatabaseHelper
         databaseHelper = new DatabaseHelper(getContext());
         stockList = new ArrayList<>();
 
+        // RecyclerView
         recyclerView = view.findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new PortfolioAdapter(stockList, currentUsername);
+        adapter = new PortfolioAdapter(stockList);
         recyclerView.setAdapter(adapter);
 
+        // TextViews
         tvTotalInvested = view.findViewById(R.id.tvTotalInvested);
         tvTotalCurrent = view.findViewById(R.id.tvTotalCurrent);
         tvTotalPnL = view.findViewById(R.id.tvTotalPnL);
 
+        // LineChart
+        summaryChart = view.findViewById(R.id.summaryChart);
+        initChart();
 
-        // Khởi tạo ViewModel chia sẻ
+        // Shared ViewModel
         sharedStockViewModel = new ViewModelProvider(requireActivity()).get(SharedStockViewModel.class);
 
-        // Sau đó mới đăng ký observer
+        // Callback xóa stock
+        adapter.setOnPortfolioActionListener(ticker -> {
+            databaseHelper.deletePortfolioItem(currentUsername, ticker);
+            loadPortfolioSummary();
+        });
+
+        // Observe dữ liệu dashboard + crypto + portfolio
         sharedStockViewModel.getDashboardStocks().observe(getViewLifecycleOwner(), list -> loadPortfolioSummary());
         sharedStockViewModel.getCryptoStocks().observe(getViewLifecycleOwner(), list -> loadPortfolioSummary());
         sharedStockViewModel.getPortfolioUpdated().observe(getViewLifecycleOwner(), flag -> {
@@ -84,26 +96,42 @@ public class PortfolioFragment extends Fragment {
             }
         });
 
-        view.findViewById(R.id.btnRefreshPortfolio).setOnClickListener(v -> {
-            // Load lại dữ liệu tổng hợp
-            loadPortfolioSummary();
-        });
-
         loadPortfolioSummary();
         return view;
     }
 
-    // --- Load dữ liệu gộp từ database + dashboard + crypto ---
+    // Khởi tạo chart 1 lần
+    private void initChart() {
+        lineDataSet = new LineDataSet(new ArrayList<>(), "Portfolio Value");
+        lineDataSet.setColor(getResources().getColor(android.R.color.holo_green_light));
+        lineDataSet.setLineWidth(2f);
+        lineDataSet.setDrawCircles(false);
+        lineDataSet.setDrawValues(false);
+        lineDataSet.setMode(LineDataSet.Mode.LINEAR);
+        lineDataSet.setDrawFilled(true);
+        lineDataSet.setFillColor(getResources().getColor(android.R.color.holo_green_light));
+
+        lineData = new LineData(lineDataSet);
+        summaryChart.setData(lineData);
+
+        summaryChart.getDescription().setEnabled(false);
+        summaryChart.getLegend().setEnabled(false);
+        summaryChart.getAxisRight().setEnabled(false);
+        summaryChart.getAxisLeft().setTextColor(getResources().getColor(android.R.color.white));
+        summaryChart.getXAxis().setTextColor(getResources().getColor(android.R.color.white));
+        summaryChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
+        summaryChart.getXAxis().setDrawGridLines(false);
+        summaryChart.getAxisLeft().setDrawGridLines(false);
+    }
+
     private void loadPortfolioSummary() {
         if (databaseHelper == null || currentUsername == null) return;
 
         stockList.clear();
-        // 1️⃣ Load từ database
         Cursor cursor = databaseHelper.getPortfolioForUser(currentUsername);
 
         if (cursor != null && cursor.moveToFirst()) {
             do {
-                // P_COL_3 (ticker) là cột 0, P_COL_4 (quantity) là cột 1, P_COL_5 (avg_price) là cột 2
                 String ticker = cursor.getString(0);
                 double quantity = cursor.getDouble(1);
                 double avgPrice = cursor.getDouble(2);
@@ -112,46 +140,39 @@ public class PortfolioFragment extends Fragment {
                 double currentPrice = findRealTimePrice(ticker, avgPrice);
                 double currentValue = quantity * currentPrice;
 
-                StockItem item = new StockItem(ticker, investedValue, currentValue);
-                item.setQuantity((int) quantity);
-                item.setPrice(currentPrice); // ✅ SET PRICE để hiển thị đúng
-                stockList.add(item);
+                StockItem item = new StockItem(ticker);
+                item.setQuantity(quantity);
+                item.setPrice(currentPrice);
+                item.setInvestedValue(investedValue);
+                item.setCurrentValue(currentValue);
 
+                stockList.add(item);
             } while (cursor.moveToNext());
         }
 
-        if (cursor != null) {
-            cursor.close();
-        }
+        if (cursor != null) cursor.close();
         adapter.notifyDataSetChanged();
         updateSummary();
     }
 
     private double findRealTimePrice(String ticker, double defaultPrice) {
-        // 2️⃣ Load từ Dashboard live
         List<StockItem> dashboard = sharedStockViewModel.getDashboardStocks().getValue();
         if (dashboard != null) {
             for (StockItem item : dashboard) {
-                if (item.getSymbol().equalsIgnoreCase(ticker)) {
-                    return item.getPrice(); // Giá real-time từ SSE
-                }
+                if (item.getSymbol().equalsIgnoreCase(ticker)) return item.getPrice();
             }
         }
 
-        // 3️⃣ Load từ Crypto live
         List<StockItem> crypto = sharedStockViewModel.getCryptoStocks().getValue();
         if (crypto != null) {
             for (StockItem item : crypto) {
-                if (item.getSymbol().equalsIgnoreCase(ticker)) {
-                    // ✅ SỬA: Ưu tiên lấy price, nếu = 0 mới lấy currentValue
+                if (item.getSymbol().equalsIgnoreCase(ticker))
                     return item.getPrice() > 0 ? item.getPrice() : item.getCurrentValue();
-                }
             }
         }
-        return defaultPrice * 1.2;
+        return defaultPrice;
     }
 
-    // --- Cập nhật summary ---
     private void updateSummary() {
         double totalInvested = 0;
         double totalCurrent = 0;
@@ -165,20 +186,22 @@ public class PortfolioFragment extends Fragment {
 
         if (tvTotalInvested != null)
             tvTotalInvested.setText(String.format("₫%,.0f", totalInvested));
-
         if (tvTotalCurrent != null)
             tvTotalCurrent.setText(String.format("₫%,.0f", totalCurrent));
-
         if (tvTotalPnL != null) {
             tvTotalPnL.setText(String.format("%s₫%,.0f", pnl >= 0 ? "+" : "-", Math.abs(pnl)));
             tvTotalPnL.setTextColor(pnl >= 0 ?
                     getResources().getColor(android.R.color.holo_green_light) :
                     getResources().getColor(android.R.color.holo_red_light));
         }
-    }
 
-    // --- Public method để refresh từ ngoài ---
-    public void refreshPortfolio() {
-        loadPortfolioSummary();
+        // ===== Cập nhật chart real-time =====
+        if (summaryChart != null) {
+            lineData.addEntry(new Entry(xIndex++, (float) totalCurrent), 0);
+            lineData.notifyDataChanged();
+            summaryChart.notifyDataSetChanged();
+            summaryChart.setVisibleXRangeMaximum(20); // chỉ hiển thị 20 điểm gần nhất
+            summaryChart.moveViewToX(lineData.getEntryCount());
+        }
     }
 }
