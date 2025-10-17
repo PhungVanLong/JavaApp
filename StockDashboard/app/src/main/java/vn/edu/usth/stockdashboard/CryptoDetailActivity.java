@@ -36,7 +36,7 @@ import java.util.Locale;
 
 import vn.edu.usth.stockdashboard.view.CustomMarkerView;
 
-public class CryptoDetailActivity extends AppCompatActivity {
+public class CryptoDetailActivity extends BaseActivity {
 
     // --- Khai báo các thành phần UI với tên đầy đủ ---
     private TextView cryptoNameTextView, currentPriceTextView, priceChangeTextView, lastUpdateTextView, dayRangeTextView, yearRangeTextView;
