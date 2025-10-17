@@ -1,75 +1,104 @@
 package vn.edu.usth.stockdashboard.data.sse.service;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
-import org.json.JSONObject;
-import okhttp3.Call;
+
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class CryptoSSEService extends Service {
-    private static final String TAG = "CryptoSSEService";
+
+    private static final String CHANNEL_ID = "crypto_sse_channel";
+    private static final int NOTIF_ID = 1;
     private OkHttpClient client;
-    private Call call;
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        String symbols = intent != null ? intent.getStringExtra("symbols") :
-                "btcusdt,ethusdt,bnbusdt,adausdt,xrpusdt,solusdt,dotusdt,avxusdt,ltcusdt,linkusdt,maticusdt,uniusdt,atomusdt,trxusdt,aptusdt,filusdt,nearusdt,icpusdt,vetusdt";
-
-        String sseUrl = "https://crypto-server-xqv5.onrender.com/events?symbols=" + symbols;
-        Log.d(TAG, "Connecting to: " + sseUrl);
+    public void onCreate() {
+        super.onCreate();
+        createNotificationChannel();
+        startForegroundImmediately();
 
         client = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(true)
+                .readTimeout(0, TimeUnit.MILLISECONDS)
+                .build();
+    }
+
+    private void startForegroundImmediately() {
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Crypto Dashboard")
+                .setContentText("Receiving real-time crypto prices")
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .build();
 
-        Request request = new Request.Builder()
-                .url(sseUrl)
-                .build();
+        startForeground(NOTIF_ID, notification);
+    }
 
-        call = client.newCall(request);
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Crypto Price Updates",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            channel.setDescription("Receiving real-time crypto prices");
+            channel.setShowBadge(false);
 
-        new Thread(() -> {
-            try (Response response = call.execute()) {
-                if (response.isSuccessful() && response.body() != null) {
-                    var source = response.body().source();
-                    while (!source.exhausted()) {
-                        String line = source.readUtf8Line();
-                        if (line != null && line.startsWith("data:")) {
-                            String json = line.substring(5).trim();
-                            JSONObject obj = new JSONObject(json);
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) manager.createNotificationChannel(channel);
+        }
+    }
 
-                            Intent update = new Intent("CRYPTO_UPDATE");
-                            update.putExtra("symbol", obj.getString("symbol"));
-                            update.putExtra("price", obj.getDouble("price"));
-                            update.putExtra("open", obj.optDouble("open", 0));
-                            update.putExtra("change_percent", obj.optDouble("change_percent", 0));
-                            update.putExtra("timestamp", obj.getLong("timestamp"));
-                            sendBroadcast(update);
-                        }
-                    }
-                } else {
-                    Log.e(TAG, "SSE connection failed: " + response);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "SSE error", e);
-            }
-        }).start();
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        String symbols = intent.getStringExtra("symbols");
+
+        // SSE connection chạy ở background thread
+        new Thread(() -> startSSE(symbols)).start();
 
         return START_STICKY;
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (call != null && !call.isCanceled()) call.cancel();
-        Log.d(TAG, "CryptoSSEService stopped");
+    private void startSSE(String symbols) {
+        try {
+            URL url = new URL("https://your-sse-endpoint.com/stream?symbols=" + symbols);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Accept", "text/event-stream");
+            connection.connect();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("data:")) {
+                    String data = line.substring(5).trim();
+                    Log.d("CryptoSSEService", "Received: " + data);
+                    // TODO: broadcast hoặc cập nhật UI qua LiveData/ViewModel
+                }
+            }
+
+            reader.close();
+            connection.disconnect();
+        } catch (Exception e) {
+            Log.e("CryptoSSEService", "SSE error", e);
+        }
     }
 
+    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;

@@ -13,6 +13,7 @@ public class StockItem {
     private final String symbol;
     private String time;
     private double price;
+
     private double change;
     private double percentChange;
     private long volume;
@@ -131,4 +132,5 @@ public class StockItem {
     public void setCurrentValue(double currentValue) {
         this.currentValue = currentValue;
     }
+    public void setPrice(double price) {this.price = price;}
 }
