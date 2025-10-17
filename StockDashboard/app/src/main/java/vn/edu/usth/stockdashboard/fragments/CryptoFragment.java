@@ -35,7 +35,21 @@ public class CryptoFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_crypto, container, false);
 
         recyclerView = view.findViewById(R.id.recyclerView_crypto);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // ✅ Optimize RecyclerView
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true); // Items have fixed size
+        recyclerView.setItemViewCacheSize(20); // Cache more items
+        recyclerView.setDrawingCacheEnabled(true);
+        recyclerView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+
+        // ✅ Disable change animations to prevent flickering
+        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
+        if (animator instanceof SimpleItemAnimator) {
+            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
+        }
+
         adapter = new CryptoAdapter(cryptoList);
         recyclerView.setAdapter(adapter);
 
@@ -64,12 +78,14 @@ public class CryptoFragment extends Fragment {
             public void onReceive(Context context, Intent intent) {
                 String symbol = intent.getStringExtra("symbol");
                 double price = intent.getDoubleExtra("price", 0);
+                double open = intent.getDoubleExtra("open", 0);
+                double changePercent = intent.getDoubleExtra("change_percent", 0);
                 long timestamp = intent.getLongExtra("timestamp", 0);
 
                 String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault())
                         .format(new Date(timestamp * 1000));
 
-                CryptoItem item = new CryptoItem(symbol, price, time);
+                CryptoItem item = new CryptoItem(symbol, price, open, changePercent, time);
 
                 if (getActivity() != null && !getActivity().isFinishing()) {
                     getActivity().runOnUiThread(() -> adapter.updateItem(item));
@@ -78,7 +94,6 @@ public class CryptoFragment extends Fragment {
         };
 
         IntentFilter filter = new IntentFilter("CRYPTO_UPDATE");
-        // ✅ Dành cho Android 13+ (API 33–34)
         requireActivity().registerReceiver(cryptoReceiver, filter, Context.RECEIVER_EXPORTED);
         receiverRegistered = true;
     }

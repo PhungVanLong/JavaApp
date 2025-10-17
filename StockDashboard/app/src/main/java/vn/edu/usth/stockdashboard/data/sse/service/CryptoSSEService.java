@@ -46,6 +46,8 @@ public class CryptoSSEService extends Service {
                             Intent update = new Intent("CRYPTO_UPDATE");
                             update.putExtra("symbol", obj.getString("symbol"));
                             update.putExtra("price", obj.getDouble("price"));
+                            update.putExtra("open", obj.optDouble("open", 0));
+                            update.putExtra("change_percent", obj.optDouble("change_percent", 0));
                             update.putExtra("timestamp", obj.getLong("timestamp"));
                             sendBroadcast(update);
                         }
