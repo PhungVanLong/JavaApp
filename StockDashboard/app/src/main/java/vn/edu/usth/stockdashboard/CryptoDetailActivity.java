@@ -38,20 +38,16 @@ import vn.edu.usth.stockdashboard.view.CustomMarkerView;
 
 public class CryptoDetailActivity extends BaseActivity {
 
-    // --- Khai báo các thành phần UI với tên đầy đủ ---
     private TextView cryptoNameTextView, currentPriceTextView, priceChangeTextView, lastUpdateTextView, dayRangeTextView, yearRangeTextView;
     private ImageView backButton;
     private LineChart priceHistoryChart;
 
-    // --- Các nút chọn khung thời gian ---
     private Button oneWeekButton, oneMonthButton, oneYearButton, fiveYearsButton, allTimeButton;
     private Button currentSelectedButton = null;
 
-    // --- Thuộc tính dữ liệu ---
     private String symbol; // Ví dụ: "btcusdt"
     private String cryptoFullName; // Ví dụ: "BITCOIN" (dùng làm giá trị dự phòng)
 
-    // --- Quản lý luồng và cập nhật UI ---
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Thread sseThread;
     private volatile boolean isRunning = true; // Dùng 'volatile' để đảm bảo tính toàn vẹn của biến giữa các luồng
@@ -62,27 +58,20 @@ public class CryptoDetailActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_crypto_detail);
 
-        // Lấy dữ liệu được truyền từ Fragment
         symbol = getIntent().getStringExtra("symbol");
         cryptoFullName = getIntent().getStringExtra("name");
 
-        // Ánh xạ View từ layout XML
         initializeViews();
 
-        // Gán dữ liệu ban đầu và cài đặt sự kiện
         setupInitialUI();
 
-        // Cài đặt sự kiện cho các nút chọn khung thời gian
         setupTimeframeButtons();
 
-        // Mặc định chọn khung thời gian 1 tháng khi mở màn hình
         highlightSelectedButton(oneMonthButton);
         fetchAndRenderChartData(symbol, "4h", 30);
     }
 
-    /**
-     * Bắt đầu luồng lắng nghe SSE khi Activity được hiển thị cho người dùng.
-     */
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -92,10 +81,7 @@ public class CryptoDetailActivity extends BaseActivity {
         }
     }
 
-    /**
-     * Dừng luồng lắng nghe SSE khi Activity không còn được nhìn thấy.
-     * Điều này giúp tiết kiệm tài nguyên (mạng, pin) một cách hiệu quả.
-     */
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -106,9 +92,7 @@ public class CryptoDetailActivity extends BaseActivity {
         }
     }
 
-    /**
-     * Ánh xạ các biến tới ID của chúng trong file layout XML.
-     */
+
     private void initializeViews() {
         cryptoNameTextView = findViewById(R.id.tvCryptoName);
         currentPriceTextView = findViewById(R.id.tvCurrentPrice);
@@ -126,18 +110,13 @@ public class CryptoDetailActivity extends BaseActivity {
         allTimeButton = findViewById(R.id.btnAll);
     }
 
-    /**
-     * Cài đặt các giá trị ban đầu và sự kiện click cho các thành phần UI.
-     */
+
     private void setupInitialUI() {
-        // Sử dụng hàm mapSymbolToFullName để hiển thị tên đầy đủ
         cryptoNameTextView.setText(mapSymbolToFullName(symbol));
         backButton.setOnClickListener(v -> finish());
     }
 
-    /**
-     * Gán sự kiện OnClickListener cho các nút chọn khung thời gian.
-     */
+
     private void setupTimeframeButtons() {
         oneWeekButton.setOnClickListener(v -> handleTimeframeSelection(oneWeekButton, "4h", 7));
         oneMonthButton.setOnClickListener(v -> handleTimeframeSelection(oneMonthButton, "4h", 30));
@@ -146,31 +125,20 @@ public class CryptoDetailActivity extends BaseActivity {
         allTimeButton.setOnClickListener(v -> handleTimeframeSelection(allTimeButton, "1w", 10 * 365)); // Giả định "All" là 10 năm
     }
 
-    /**
-     * Xử lý logic khi một nút timeframe được nhấn.
-     */
+
     private void handleTimeframeSelection(Button clickedButton, String interval, int days) {
         highlightSelectedButton(clickedButton);
         fetchAndRenderChartData(symbol, interval, days);
     }
 
-    /**
-     * Thay đổi giao diện để làm nổi bật nút đang được chọn.
-     * (Bạn có thể thêm code thay đổi màu nền hoặc màu chữ ở đây)
-     */
+
     private void highlightSelectedButton(Button selectedButton) {
         if (currentSelectedButton != null) {
-            // Ví dụ: currentSelectedButton.setBackgroundColor(Color.TRANSPARENT);
         }
-        // Ví dụ: selectedButton.setBackgroundColor(Color.BLUE);
         currentSelectedButton = selectedButton;
     }
 
-    /**
-     * Hàm ánh xạ từ mã symbol sang tên đầy đủ của crypto.
-     * @param symbol Mã crypto, ví dụ: "btcusdt"
-     * @return Tên đầy đủ, ví dụ: "Bitcoin"
-     */
+
     private String mapSymbolToFullName(String symbol) {
         if (symbol == null) return "Unknown";
         switch (symbol.toLowerCase()) {
@@ -194,15 +162,12 @@ public class CryptoDetailActivity extends BaseActivity {
             case "icpusdt": return "Internet Computer";
             case "vetusdt": return "VeChain";
             default:
-                // Nếu không tìm thấy, trả về tên đã được xử lý từ trước hoặc tự suy ra
                 return cryptoFullName != null ? cryptoFullName : symbol.replace("usdt", "").toUpperCase();
         }
     }
 
 
-    // ==============================================================
-    // PHẦN 1: TẢI VÀ HIỂN THỊ DỮ LIỆU LỊCH SỬ CHO BIỂU ĐỒ
-    // ==============================================================
+
 
     private void fetchAndRenderChartData(String symbol, String interval, int days) {
         new Thread(() -> {
@@ -260,7 +225,7 @@ public class CryptoDetailActivity extends BaseActivity {
     private void renderChart(List<Entry> entries, String interval) {
         LineDataSet dataSet = new LineDataSet(entries, "Giá " + symbol.toUpperCase());
         dataSet.setColor(Color.parseColor("#4A90E2"));
-        dataSet.setLineWidth(2f);
+        dataSet.setLineWidth(1f);
         dataSet.setDrawCircles(false);
         dataSet.setDrawValues(false);
         dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
@@ -308,9 +273,6 @@ public class CryptoDetailActivity extends BaseActivity {
     }
 
 
-    // ==============================================================
-    // PHẦN 2: CẬP NHẬT GIÁ REAL-TIME BẰNG SSE
-    // ==============================================================
 
     private void startRealtimePriceUpdates(String symbol) {
         String urlString = "https://crypto-server-xqv5.onrender.com/events?symbols=" + symbol;
@@ -361,9 +323,6 @@ public class CryptoDetailActivity extends BaseActivity {
     }
 
 
-    // ==============================================================
-    // PHẦN 3: CẬP NHẬT GIAO DIỆN
-    // ==============================================================
 
     private void updatePriceUI(double price, double changePercent, long timestamp) {
         if (lastPrice > 0) {
@@ -382,7 +341,7 @@ public class CryptoDetailActivity extends BaseActivity {
         priceChangeTextView.setTextColor(priceChangeColor);
 
         String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date(timestamp));
-        lastUpdateTextView.setText("Cập nhật: " + time);
+        lastUpdateTextView.setText("Update: " + time);
     }
 
     private void flashTextView(TextView textView, int startColor, int endColor) {
