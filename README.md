@@ -380,12 +380,7 @@ public void onDestroy() {
 }
 ```
 
-##  Login & Security (Optional)
-1. **Personal Data**: Watchlist, portfolio for each person
-2. **Usage Limits**: Free users: 100 times/day, Logged in: 10,000 times/day
-3. **Paid Features**: Free: 10 coins, Paid: Unlimited
-4. **Multi-device Sync**: Same data on phone, tablet
-5. **Personalization**: Customize interface, notifications
+
 
 
 
