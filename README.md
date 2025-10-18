@@ -1,7 +1,7 @@
 # Stock Dashboard 
 ##  Overview
 This is a simple Android application to:
-- View cryptocurrency prices (Bitcoin, Ethereum, etc.)
+- View cryptocurrency, stock prices (Bitcoin, Ethereum, ACB, etc.)
 - Prices update continuously (real-time)
 - View price charts by day, month, year
 - Fast performance and battery-efficient
