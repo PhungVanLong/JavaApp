@@ -35,7 +35,7 @@ app/
 ### 1. Continuous Price Updates
 
 **Service (Background Service):**
-```java
+```
 // CryptoSSEService.java
 // Background service to receive new prices
 public class CryptoSSEService extends Service {
@@ -57,13 +57,6 @@ public class CryptoSSEService extends Service {
 - Only receive data when screen is visible
 - Turn off when not in use to save battery
 
-### 2. Track Multiple Coins Simultaneously
-
-```java
-// List of 19 cryptocurrencies
-private static final String SYMBOLS = 
-    "btcusdt,ethusdt,bnbusdt,adausdt,xrpusdt,solusdt,..."
-
 // Only need 1 connection for all
 String url = "https://server.com/events?symbols=" + SYMBOLS;
 ```
@@ -72,7 +65,7 @@ String url = "https://server.com/events?symbols=" + SYMBOLS;
 - 1 connection instead of 19 connections
 -  Save network bandwidth
 
-### 3. Price Charts
+### 2. Price Charts
 
 ```java
 // CryptoDetailActivity.java
@@ -89,7 +82,7 @@ fetchAndRenderChartData(symbol, interval, days) {
 - Smooth chart lines
 - Auto-adjust scale
 
-### 4. Color Effects When Price Changes
+### 3. Color Effects When Price Changes
 
 ```java
 // When price changes
@@ -106,7 +99,7 @@ updatePriceUI(price, changePercent, timestamp) {
 - Easy to see if price goes up or down
 - Smooth color transitions
 
-### 5. List Optimization
+### 4. List Optimization
 
 ```java
 // Make RecyclerView run faster
