@@ -35,7 +35,7 @@ public class CryptoSSEService extends Service {
         super.onCreate();
         createNotificationChannel();
         startForegroundImmediately();
-        Log.d(TAG, "✅ Service created");
+//        Log.d(TAG, " Service created");
 
         client = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(true)
@@ -83,7 +83,6 @@ public class CryptoSSEService extends Service {
         // SSE connection chạy ở background thread
         stopSSEThread();
 
-        // Khởi động thread mới
         isRunning = true;
         sseThread = new Thread(() -> startSSE(symbols));
         sseThread.start();
@@ -103,7 +102,7 @@ public class CryptoSSEService extends Service {
             connection.setReadTimeout(0); // Infinite read timeout for SSE
             connection.connect();
             int responseCode = connection.getResponseCode();
-            Log.d(TAG, "✅ SSE Connected! Response code: " + responseCode);
+            Log.d(TAG, "SSE Connected! Response code: " + responseCode);
 
             reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String line;
@@ -114,7 +113,6 @@ public class CryptoSSEService extends Service {
                 if (line.startsWith("data:")) {
                     dataBuilder.append(line.substring(5).trim());
                 } else if (line.isEmpty() && dataBuilder.length() > 0) {
-                    // ✅ PARSE JSON VÀ BROADCAST
                     try {
                         String jsonString = dataBuilder.toString();
                         JSONObject json = new JSONObject(jsonString);
@@ -125,7 +123,6 @@ public class CryptoSSEService extends Service {
                         double changePercent = json.optDouble("change_percent", 0.0);
                         long timestamp = json.optLong("timestamp", System.currentTimeMillis() / 1000);
 
-                        // ✅ BROADCAST DATA
                         Intent broadcastIntent = new Intent("CRYPTO_UPDATE");
                         broadcastIntent.putExtra("symbol", symbol);
                         broadcastIntent.putExtra("price", price);
@@ -137,22 +134,22 @@ public class CryptoSSEService extends Service {
 
                         eventCount++;
                         if (eventCount % 20 == 0) {
-                            Log.d(TAG, "📊 Event #" + eventCount + " | " + symbol + " = $" + price);
+                            Log.d(TAG, " Event #" + eventCount + " | " + symbol + " = $" + price);
                         }
 
                     } catch (Exception e) {
-                        Log.e(TAG, "❌ Error parsing JSON: " + dataBuilder.toString(), e);
+                        Log.e(TAG, " Error parsing JSON: " + dataBuilder.toString(), e);
                     }
 
                     dataBuilder.setLength(0);
                 }
             }
 
-            Log.d(TAG, "⚠️ SSE loop ended");
+            Log.d(TAG, "SSE loop ended");
 
         } catch (Exception e) {
             if (isRunning) {
-                Log.e(TAG, "❌ SSE error", e);
+                Log.e(TAG, "SSE error", e);
             }
         } finally {
             try {
@@ -160,7 +157,7 @@ public class CryptoSSEService extends Service {
                 if (connection != null) connection.disconnect();
             } catch (Exception ignored) {}
 
-            Log.d(TAG, "🔌 SSE connection closed");
+            Log.d(TAG, "SSE connection closed");
         }
     }
 
@@ -169,7 +166,7 @@ public class CryptoSSEService extends Service {
         if (sseThread != null) {
             sseThread.interrupt();
             try {
-                sseThread.join(1000); // Chờ tối đa 1s
+                sseThread.join(1000);
             } catch (InterruptedException e) {
                 Log.w(TAG, "Thread interrupted while stopping");
             }

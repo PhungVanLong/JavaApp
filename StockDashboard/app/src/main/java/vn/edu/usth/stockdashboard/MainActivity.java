@@ -46,7 +46,6 @@ public class MainActivity extends BaseActivity {
         headerTitle = findViewById(R.id.header_title);
 
         if (savedInstanceState == null) {
-            // Add all fragments initially, dashboard is visible by default
             fragmentManager.beginTransaction()
                     .add(R.id.fragment_container, dashboardFragment, "1") // Dashboard visible
                     .add(R.id.fragment_container, cryptoFragment, "2").hide(cryptoFragment)

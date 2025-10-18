@@ -21,9 +21,9 @@ public class StockItem {
     private double high;
     private double low;
 
-    private double investedValue; // Giá trị đã đầu tư
-    private double currentValue;  // Giá trị hiện tại của khoản đầu tư
-    private double quantity; // Số lượng cổ phiếu nắm giữ
+    private double investedValue;
+    private double currentValue;
+    private double quantity;
 
 
     // Constructor for creating initial placeholders
@@ -120,7 +120,7 @@ public class StockItem {
     public double getQuantity() {
         return quantity;
     }
-    // Setters để cập nhật Portfolio Data
+
     public void setQuantity(double quantity) {
         this.quantity = quantity;
     }

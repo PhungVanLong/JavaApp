@@ -149,10 +149,10 @@ public class CryptoFragment extends Fragment {
 
                 if (getActivity() != null && !getActivity().isFinishing()) {
                     getActivity().runOnUiThread(() -> {
-                        // ✅ Update adapter
+                        //  Update adapter
                         adapter.updateItem(item);
 
-                        // ✅ Push lên ViewModel
+                        //  Push lên ViewModel
                         updateViewModel();
                     });
                 }
@@ -167,7 +167,7 @@ public class CryptoFragment extends Fragment {
                     crypto.getPrice(),  // investedValue
                     crypto.getPrice()   // currentValue
             );
-            stock.setPrice(crypto.getPrice()); // ✅ QUAN TRỌNG: Set price
+            stock.setPrice(crypto.getPrice()); //  QUAN TRỌNG: Set price
             stock.setQuantity(1);
             cryptoStockList.add(stock);
         }
@@ -189,7 +189,7 @@ public class CryptoFragment extends Fragment {
             LocalBroadcastManager.getInstance(requireContext())
                     .registerReceiver(cryptoReceiver, filter);
             receiverRegistered = true;
-            Log.d(TAG, "✅ Receiver registered");
+            Log.d(TAG, " Receiver registered");
         }
 
         // 2. Khởi động service để lấy dữ liệu
@@ -205,7 +205,7 @@ public class CryptoFragment extends Fragment {
         EditText etQuantity = dialogView.findViewById(R.id.etQuantity);
         EditText etPrice = dialogView.findViewById(R.id.etPrice);
 
-        // ✅ Pre-fill giá hiện tại
+        //  Pre-fill giá hiện tại
         etPrice.setText(String.format(Locale.US, "%.2f", item.getPrice()));
 
         builder.setView(dialogView);
@@ -242,7 +242,7 @@ public class CryptoFragment extends Fragment {
                 // Tạo StockItem
                 StockItem stock = new StockItem(item.getSymbol(), investedValue, currentValue);
                 stock.setQuantity(quantity);
-                stock.setPrice(item.getPrice()); // ✅ Set price
+                stock.setPrice(item.getPrice()); //  Set price
 
                 // Lưu vào SQLite
                 PortfolioManager.addStock(requireContext(), stock, currentUsername);

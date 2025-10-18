@@ -245,7 +245,7 @@ public class ChartFragment extends Fragment {
             url = baseUrl + "/history?start=" + startDate + "&end=" + endDate;
         }
 
-        Log.d(TAG, "📡 Fetching data from: " + url);
+        Log.d(TAG, " Fetching data from: " + url);
 
         Request request = new Request.Builder()
                 .url(url)
@@ -255,14 +255,14 @@ public class ChartFragment extends Fragment {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.e(TAG, "❌ Request failed: " + e.getMessage());
+                Log.e(TAG, " Request failed: " + e.getMessage());
                 sendErrorMessage("Connection Error: " + e.getMessage());
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (!response.isSuccessful()) {
-                    Log.e(TAG, "❌ API Error: " + response.code());
+                    Log.e(TAG, " API Error: " + response.code());
                     sendErrorMessage("API Error: " + response.code());
                     response.close();
                     return;
@@ -356,7 +356,7 @@ public class ChartFragment extends Fragment {
                     uiHandler.sendMessage(msg);
 
                 } catch (JSONException e) {
-                    Log.e(TAG, "❌ JSON Parse Error: " + e.getMessage());
+                    Log.e(TAG, " JSON Parse Error: " + e.getMessage());
                     sendErrorMessage("JSON Parse Error");
                 } finally {
                     response.close();
@@ -404,7 +404,7 @@ public class ChartFragment extends Fragment {
             Log.d(TAG, "Chart rendered successfully");
 
         } catch (Exception e) {
-            Log.e(TAG, "❌ Error rendering chart: " + e.getMessage());
+            Log.e(TAG, " Error rendering chart: " + e.getMessage());
             Toast.makeText(getContext(), "Chart Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }

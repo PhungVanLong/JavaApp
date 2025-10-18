@@ -20,7 +20,6 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
     private final Map<String, Double> lastPrices = new HashMap<>();
     private OnItemClickListener listener;
 
-    // ===== Interface click item =====
     public interface OnItemClickListener {
         void onItemClick(CryptoItem item);
     }
@@ -46,7 +45,6 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         return cryptoList.get(position).getSymbol().hashCode();
     }
 
-    // ===== Cập nhật item từ SSE =====
     public void updateItem(CryptoItem item) {
         for (int i = 0; i < cryptoList.size(); i++) {
             if (cryptoList.get(i).getSymbol().equalsIgnoreCase(item.getSymbol())) {
@@ -76,7 +74,7 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         CryptoItem item = cryptoList.get(position);
 
         if (payloads != null && !payloads.isEmpty()) {
-            updateItemData(holder, item); // chỉ update dữ liệu thay đổi
+            updateItemData(holder, item);
             return;
         }
 
@@ -120,17 +118,16 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         String changeText;
         if (item.getChangePercent() > 0) {
             changeText = String.format("▲ +%.2f%%", item.getChangePercent());
-            holder.ctChange.setTextColor(Color.parseColor("#4CAF50")); // xanh
+            holder.ctChange.setTextColor(Color.parseColor("#4CAF50"));
         } else if (item.getChangePercent() < 0) {
             changeText = String.format("▼ %.2f%%", item.getChangePercent());
-            holder.ctChange.setTextColor(Color.parseColor("#F44336")); // đỏ
+            holder.ctChange.setTextColor(Color.parseColor("#F44336"));
         } else {
             changeText = String.format("%.2f%%", item.getChangePercent());
             holder.ctChange.setTextColor(Color.GRAY);
         }
         holder.ctChange.setText(changeText);
 
-        // ✅ Flash màu khi giá thay đổi
         Double last = lastPrices.get(item.getSymbol());
         if (last != null) {
             if (item.getPrice() > last)
@@ -140,7 +137,6 @@ public class CryptoAdapter extends RecyclerView.Adapter<CryptoAdapter.ViewHolder
         }
         lastPrices.put(item.getSymbol(), item.getPrice());
 
-        // ✅ Sự kiện click item
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onItemClick(item);
         });
