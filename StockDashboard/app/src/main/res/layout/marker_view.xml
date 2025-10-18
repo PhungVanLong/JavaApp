@@ -3,25 +3,14 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp"
-    android:background="@drawable/marker_background">
+    android:background="@drawable/marker_background"
+    android:padding="6dp">
 
     <TextView
-        android:id="@+id/tvMarkerPrice"
+        android:id="@+id/tvContent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="$0.00"
-        android:textColor="#FFFFFF"
-        android:textSize="14sp"
-        android:textStyle="bold"/>
-
-<!--    <TextView-->
-<!--        android:id="@+id/tvMarkerDate"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="01/01/2025"-->
-<!--        android:textColor="#CCCCCC"-->
-<!--        android:textSize="11sp"-->
-<!--        android:layout_marginTop="2dp"/>-->
-
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:text="Marker" />
 </LinearLayout>
