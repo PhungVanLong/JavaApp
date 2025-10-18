@@ -1,7 +1,4 @@
-# Stock Dashboard - Real-time Crypto Tracking App
-
-An Stock application 
-
+# Stock Dashboard 
 ##  Overview
 This is a simple Android application to:
 - View cryptocurrency prices (Bitcoin, Ethereum, etc.)
