@@ -30,7 +30,7 @@ app/
     └── ....... 
 ```
 
-## 🎯 Main Features
+##  Main Features
 
 ### 1. Continuous Price Updates
 
@@ -284,7 +284,7 @@ startActivity(intent);
 // → Then load chart data
 ```
 
-## 🔄 SSE Connection Management
+##  SSE Connection Management
 
 ### Connection States
 
@@ -397,7 +397,7 @@ public void onDestroy() {
 
 
 
-## 📊 Architecture Diagram
+##  Architecture Diagram
 
 ```
 ┌─────────────────────────────────────┐
@@ -426,7 +426,7 @@ public void onDestroy() {
 └────────┘  └──────────────┘
 ```
 
-## 📈 Performance
+##  Performance
 
 ### Network
 - **Connection**: 1 connection for 19 coins
@@ -496,40 +496,8 @@ VeChain (VET)
 - **1 Year**: 365 days
 - **5 Years**: 1825 days
 
-## ⚠️ Lessons Learned
 
-### 1. SSE is Better Than Continuous Checking
-**Before:** Ask server every 5 seconds
-```java
-// Send 12 requests per minute
-handler.postDelayed(() -> {
-    fetchPrice();
-}, 5000);
-```
 
-**After:** Use SSE
-```java
-// 1 connection, receive continuously
-// Reduce 99% of requests
-```
-
-### 2. Must Manage Lifecycle Properly
-```java
-// Bug: Service runs when app is closed
-// Fix: Stop service in onPause()
-```
-
-### 3. Update UI Correctly
-```java
-// Bug: Update UI from background thread
-// Fix: Use Handler.post() to update
-```
-
-### 4. RecyclerView Animation
-```java
-// Bug: Flickering when updating prices
-// Fix: Disable change animations
-```
 
 
 
