@@ -18,12 +18,16 @@ This is a simple Android application to:
 app/
 ├── fragments/
 │   └── CryptoFragment.java          // Cryptocurrency list screen
+│   └── .......  
 ├── activities/
 │   └── CryptoDetailActivity.java    // Detail screen + chart
+│   └── ....... 
 ├── services/
 │   └── CryptoSSEService.java        // Background service for receiving prices
+│   └── ....... 
 └── adapter/
     └── CryptoAdapter.java           // Display each item in the list
+    └── ....... 
 ```
 
 ## 🎯 Main Features
@@ -42,25 +46,16 @@ public class CryptoSSEService extends Service {
 ```
 
 **Features:**
-- ✅ Connection always open to receive data
-- ✅ Auto-reconnect when network is lost
-- ✅ Runs in background without freezing screen
-- ✅ Can send to multiple screens simultaneously
+- Connection always open to receive data
+- Auto-reconnect when network is lost
+- Runs in background without freezing screen
+- Can send to multiple screens simultaneously
 
-**BroadcastReceiver (Message Receiver):**
-```java
-// CryptoFragment.java
-// Receive messages from Service and update screen
-setupCryptoReceiver() {
-    - Receive new prices from Service
-    - Update RecyclerView
-    - Display price and % change
-}
 ```
 
 **Lifecycle Management:**
-- ✅ Only receive data when screen is visible
-- ✅ Turn off when not in use to save battery
+- Only receive data when screen is visible
+- Turn off when not in use to save battery
 
 ### 2. Track Multiple Coins Simultaneously
 
@@ -74,8 +69,8 @@ String url = "https://server.com/events?symbols=" + SYMBOLS;
 ```
 
 **Benefits:**
-- ✅ 1 connection instead of 19 connections
-- ✅ Save network bandwidth
+- 1 connection instead of 19 connections
+-  Save network bandwidth
 
 ### 3. Price Charts
 
@@ -90,9 +85,9 @@ fetchAndRenderChartData(symbol, interval, days) {
 ```
 
 **Features:**
-- ✅ View by: 1 week, 1 month, 1 year, 5 years
-- ✅ Smooth chart lines
-- ✅ Auto-adjust scale
+- View by: 1 week, 1 month, 1 year, 5 years
+- Smooth chart lines
+- Auto-adjust scale
 
 ### 4. Color Effects When Price Changes
 
@@ -108,8 +103,8 @@ updatePriceUI(price, changePercent, timestamp) {
 ```
 
 **User Experience Enhancement:**
-- ✅ Easy to see if price goes up or down
-- ✅ Smooth color transitions
+- Easy to see if price goes up or down
+- Smooth color transitions
 
 ### 5. List Optimization
 
@@ -121,7 +116,7 @@ setupRecyclerView() {
 }
 ```
 
-## 🚀 Optimization
+##  Optimization
 
 ### 1. Keep-Alive - Keep Connection Alive
 
@@ -150,10 +145,10 @@ setInterval(() => {
 ```
 
 **Benefits:**
-- ✅ Know immediately when connection is lost (after 30 seconds instead of 2 minutes)
-- ✅ Auto-reconnect faster
-- ✅ No silent failures (connection dead but app doesn't know)
-- ✅ Works well through complex networks
+- Know immediately when connection is lost (after 30 seconds instead of 2 minutes)
+- Auto-reconnect faster
+- No silent failures (connection dead but app doesn't know)
+- Works well through complex networks
 
 #### How It Works
 
@@ -173,20 +168,11 @@ private OkHttpClient createClient() {
 **What is SSE?**
 SSE (Server-Sent Events) = Server sends continuous messages to app
 
-**Comparison with Other Methods:**
-
-| Feature | SSE | WebSocket | Polling |
-|---------|-----|-----------|---------|
-| Data Direction | Server → App | 2-way | App → Server |
-| Reconnection | Automatic | Manual | Not needed |
-| Complexity | Simple | Complex | Very simple |
-| Best for | Receiving prices | Chat, gaming | Occasional checks |
-
 **Why Choose SSE?**
-- ✅ Only need to receive prices (no need to send)
-- ✅ Auto-reconnect when network lost
-- ✅ Easy to debug (uses HTTP)
-- ✅ Less resource consumption
+-  Only need to receive prices (no need to send)
+-  Auto-reconnect when network lost
+-  Easy to debug (uses HTTP)
+-  Less resource consumption
 
 ### 3. Lifecycle Management
 
@@ -205,9 +191,9 @@ onPause() {
 ```
 
 **Benefits:**
-- ✅ Don't waste network when not viewing
-- ✅ Save battery
-- ✅ Close connection when not needed
+-  Don't waste network when not viewing
+-  Save battery
+-  Close connection when not needed
 
 ### 4. Thread Management
 
@@ -239,11 +225,6 @@ onStop() {
 }
 ```
 
-**Thread Safety:**
-- ✅ Use `volatile` to ensure safety between threads
-- ✅ Use `Handler.post()` to update screen
-- ✅ Clean up properly when exiting
-
 ### 5. Data Storage
 
 ```java
@@ -259,9 +240,9 @@ adapter.updateItem(newItem) {
 ```
 
 **No need to save to disk because:**
-- ❌ Prices change every second
-- ✅ SSE always provides new prices
-- ✅ Storing in RAM is enough
+-  Prices change every second
+-  SSE always provides new prices
+-  Storing in RAM is enough
 
 ### 6. Error Handling
 
@@ -284,12 +265,8 @@ try {
 
 **One connection for multiple coins:**
 ```java
-// ❌ Inefficient: 19 connections
-for (String symbol : symbols) {
-    connectSSE(symbol);
-}
 
-// ✅ Efficient: 1 connection
+//  Efficient: 1 connection
 String symbols = "btcusdt,ethusdt,bnbusdt,...";
 connectSSE(symbols);
 ```
@@ -410,97 +387,24 @@ public void onDestroy() {
 }
 ```
 
-## 🔐 Login & Security (Optional)
-
-### When Do You Need Login?
-
-#### ✅ **Need Login When:**
+##  Login & Security (Optional)
 1. **Personal Data**: Watchlist, portfolio for each person
 2. **Usage Limits**: Free users: 100 times/day, Logged in: 10,000 times/day
 3. **Paid Features**: Free: 10 coins, Paid: Unlimited
 4. **Multi-device Sync**: Same data on phone, tablet
 5. **Personalization**: Customize interface, notifications
 
-#### ❌ **No Login Needed When:**
-1. **Public Data**: Crypto prices everyone can see
-2. **No Personalization**: Everyone sees the same thing
-3. **Local Storage Only**: No need to sync
-4. **Demo App**: No user system yet
 
-### How to Add Login (if needed)
 
-```java
-// Login
-public class AuthService {
-    public void login(String email, String password) {
-        // Send email and password to server
-        // Receive token (access pass)
-        
-        // Save token
-        SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
-        prefs.edit()
-            .putString("jwt_token", token)
-            .apply();
-    }
-}
-
-// Attach token when connecting SSE
-private void connectSSE() {
-    String token = getToken();
-    
-    Request request = new Request.Builder()
-        .url(sseUrl)
-        .header("Authorization", "Bearer " + token)  // Send token
-        .build();
-}
-```
-
-### Security Notes
-
-#### ❌ **Don't Do:**
-```java
-// Save password - DANGEROUS!
-prefs.edit().putString("password", password);
-
-// Send token in URL - Token will be exposed!
-String url = sseUrl + "?token=" + token;
-```
-
-#### ✅ **Should Do:**
-```java
-// 1. Send token in Header
-.header("Authorization", "Bearer " + token)
-
-// 2. Only use HTTPS
-if (!url.startsWith("https://")) {
-    throw new SecurityException("Must use HTTPS");
-}
-```
-
-### Current Project
-
-```java
-// Current: NO LOGIN
-// Reasons:
-// ✅ Crypto prices are public
-// ✅ Server doesn't require login
-// ✅ Watchlist only saved locally
-// ✅ No paid features
-
-// Future: MAY ADD
-// - Accounts for multi-device sync
-// - Paid tier for advanced features
-// - Custom notifications
-```
 
 ## 📊 Architecture Diagram
 
 ```
 ┌─────────────────────────────────────┐
 │         Server (Backend)            │
-│   Sends crypto prices continuously  │
+│   Sends symbol prices continuously  │
 └────────────┬────────────────────────┘
-             │ SSE Stream (19 coins)
+             │ SSE Stream 
              ▼
 ┌─────────────────────────────────────┐
 │    CryptoSSEService (Service)       │
@@ -627,16 +531,5 @@ handler.postDelayed(() -> {
 // Fix: Disable change animations
 ```
 
-## 🚀 Future Features
 
-- [ ] Fallback to WebSocket if SSE doesn't work
-- [ ] Push notifications when price changes significantly
-- [ ] Watchlist with database
-- [ ] Portfolio tracking
-- [ ] Dark/light mode
-- [ ] Save price history
-- [ ] Offline mode with latest prices
 
----
-
-**Built with ❤️ for real-time crypto tracking**
