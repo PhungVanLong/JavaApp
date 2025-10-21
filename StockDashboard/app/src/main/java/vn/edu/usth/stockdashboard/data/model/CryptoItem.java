@@ -43,7 +43,7 @@ public class CryptoItem {
         return changePercent < 0;
     }
 
-    // ✅ Override equals and hashCode for stable comparison
+    // Override equals and hashCode for stable comparison
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

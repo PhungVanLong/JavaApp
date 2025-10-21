@@ -112,7 +112,7 @@ public class ChartActivity extends BaseActivity {
         String url = "https://vn-stock-api-bsjj.onrender.com/api/stock/"
                 + stockSymbol.toLowerCase() + "/history";
 
-        Log.d(TAG, "📡 Fetching data from: " + url);
+        Log.d(TAG, " Fetching data from: " + url);
 
         Request request = new Request.Builder()
                 .url(url)
@@ -122,7 +122,7 @@ public class ChartActivity extends BaseActivity {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.e(TAG, "❌ Request failed: " + e.getMessage());
+                Log.e(TAG, " Request failed: " + e.getMessage());
 
                 Message msg = Message.obtain();
                 msg.what = MSG_SHOW_ERROR;
@@ -135,7 +135,7 @@ public class ChartActivity extends BaseActivity {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (!response.isSuccessful()) {
-                    Log.e(TAG, "❌ API Error: " + response.code());
+                    Log.e(TAG, " API Error: " + response.code());
 
                     Message msg = Message.obtain();
                     msg.what = MSG_SHOW_ERROR;
@@ -149,12 +149,12 @@ public class ChartActivity extends BaseActivity {
 
                 try {
                     String jsonData = response.body().string();
-                    Log.d(TAG, "📊 Response received: " + jsonData.substring(0, Math.min(200, jsonData.length())));
+                    Log.d(TAG, " Response received: " + jsonData.substring(0, Math.min(200, jsonData.length())));
 
                     JSONObject jsonObject = new JSONObject(jsonData);
 
                     if (!jsonObject.has("data")) {
-                        Log.e(TAG, "❌ No 'data' field in response");
+                        Log.e(TAG, " No 'data' field in response");
                         sendErrorMessage("No data available");
                         return;
                     }
@@ -162,7 +162,7 @@ public class ChartActivity extends BaseActivity {
                     JSONArray dataArray = jsonObject.getJSONArray("data");
 
                     if (dataArray.length() == 0) {
-                        Log.e(TAG, "❌ Data array is empty");
+                        Log.e(TAG, " Data array is empty");
                         sendErrorMessage("Data is empty");
                         return;
                     }
@@ -196,12 +196,12 @@ public class ChartActivity extends BaseActivity {
                     }
 
                     if (seriesData.isEmpty()) {
-                        Log.e(TAG, "❌ No valid data entries parsed");
+                        Log.e(TAG, " No valid data entries parsed");
                         sendErrorMessage("No valid data");
                         return;
                     }
 
-                    Log.d(TAG, "✅ Successfully parsed " + seriesData.size() + " data points");
+                    Log.d(TAG, "Successfully parsed " + seriesData.size() + " data points");
 
                     // Gửi message tới Handler để update UI
                     Message msg = Message.obtain();
@@ -213,7 +213,7 @@ public class ChartActivity extends BaseActivity {
                     uiHandler.sendMessage(msg);
 
                 } catch (JSONException e) {
-                    Log.e(TAG, "❌ JSON Parse Error: " + e.getMessage());
+                    Log.e(TAG, " JSON Parse Error: " + e.getMessage());
                     sendErrorMessage("JSON Parse Error");
                 } finally {
                     response.close();
@@ -269,10 +269,10 @@ public class ChartActivity extends BaseActivity {
             anyChartView.setChart(cartesian);
             titleText.setText(stockSymbol + " – $" + String.format("%.2f", currentPrice));
 
-            Log.d(TAG, "✅ Chart rendered successfully");
+            Log.d(TAG, "Chart rendered successfully");
 
         } catch (Exception e) {
-            Log.e(TAG, "❌ Error rendering chart: " + e.getMessage());
+            Log.e(TAG, " Error rendering chart: " + e.getMessage());
             Toast.makeText(this, "Chart Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
@@ -281,17 +281,17 @@ public class ChartActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // ✅ Clear chart
+        // Clear chart
         if (anyChartView != null) {
             anyChartView.setChart(null);
         }
 
-        // ✅ Stop handler
+        // Stop handler
         if (uiHandler != null) {
             uiHandler.removeCallbacksAndMessages(null);
         }
 
-        // ✅ Stop API calls
+        // Stop API calls
         if (client != null) {
             client.dispatcher().cancelAll();
         }

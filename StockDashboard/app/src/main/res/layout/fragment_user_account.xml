@@ -38,18 +38,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nô lệ tư bản lvl 1"
+            android:text="developing"
             android:textSize="14sp"
             android:layout_marginBottom="8dp"
             android:textColor="@color/white"
             />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="gay"
-            android:textSize="14sp"
-            android:textColor="@color/white" />
 
     </LinearLayout>
 

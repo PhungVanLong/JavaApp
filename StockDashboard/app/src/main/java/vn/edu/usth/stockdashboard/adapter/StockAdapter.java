@@ -35,15 +35,13 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
         return new StockViewHolder(view);
     }
 
-    // This is for a FULL bind (when the view is first created)
-    // Dùng cho việc bind TOÀN BỘ (khi view được tạo lần đầu)
+    // This is for a FULL bind
     @Override
     public void onBindViewHolder(@NonNull StockViewHolder holder, int position) {
         holder.bind(stockList.get(position), listener);
     }
 
     // This is for PARTIAL updates (when only some data changes)
-    // Dùng cho việc cập nhật TỪNG PHẦN (khi chỉ một vài dữ liệu thay đổi)
     @Override
     public void onBindViewHolder(@NonNull StockViewHolder holder, int position, @NonNull List<Object> payloads) {
         if (payloads.isEmpty()) {

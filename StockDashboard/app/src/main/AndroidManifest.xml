@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-<uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+
     <application
         android:exported="true"
         android:usesCleartextTraffic="true"
-
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -30,11 +35,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".MainActivity"
             android:exported="false" />
 
-        <activity android:name=".ChartActivity"
+        <activity
+            android:name=".ChartActivity"
             android:exported="true"
             android:label=""/>
         <!-- Thêm activity -->
@@ -42,12 +49,12 @@
             android:name=".CryptoDetailActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar"/>
 
-
+        <!-- Foreground service type NONE để tránh crash Android 13+ -->
         <service
             android:name=".data.sse.service.CryptoSSEService"
-            android:exported="true" />
-
-
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
     </application>
-    <uses-permission android:name="android.permission.INTERNET"/>
+
 </manifest>

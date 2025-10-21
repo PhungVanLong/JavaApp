@@ -87,8 +87,8 @@ public class CryptoDetailActivity extends BaseActivity {
         super.onStop();
         isRunning = false;
         if (sseThread != null) {
-            sseThread.interrupt(); // Gửi tín hiệu yêu cầu dừng luồng
-            sseThread = null;      // Giải phóng tham chiếu
+            sseThread.interrupt();
+            sseThread = null;
         }
     }
 
@@ -165,7 +165,6 @@ public class CryptoDetailActivity extends BaseActivity {
                 return cryptoFullName != null ? cryptoFullName : symbol.replace("usdt", "").toUpperCase();
         }
     }
-
 
 
 
@@ -271,7 +270,6 @@ public class CryptoDetailActivity extends BaseActivity {
         priceHistoryChart.getLegend().setEnabled(false);
         priceHistoryChart.invalidate();
     }
-
 
 
     private void startRealtimePriceUpdates(String symbol) {
