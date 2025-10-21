@@ -134,9 +134,7 @@ public class CryptoDetailActivity extends BaseActivity {
 
     private void highlightSelectedButton(Button selectedButton) {
         if (currentSelectedButton != null) {
-            // Ví dụ: currentSelectedButton.setBackgroundColor(Color.TRANSPARENT);
         }
-        // Ví dụ: selectedButton.setBackgroundColor(Color.BLUE);
         currentSelectedButton = selectedButton;
     }
 
@@ -226,7 +224,7 @@ public class CryptoDetailActivity extends BaseActivity {
     private void renderChart(List<Entry> entries, String interval) {
         LineDataSet dataSet = new LineDataSet(entries, "Giá " + symbol.toUpperCase());
         dataSet.setColor(Color.parseColor("#4A90E2"));
-        dataSet.setLineWidth(2f);
+        dataSet.setLineWidth(1f);
         dataSet.setDrawCircles(false);
         dataSet.setDrawValues(false);
         dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);

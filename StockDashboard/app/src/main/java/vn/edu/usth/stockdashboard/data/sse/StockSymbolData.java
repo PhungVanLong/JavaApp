@@ -11,7 +11,7 @@ public class StockSymbolData {
     @SerializedName("symbol")
     private String symbol;
 
-    // Getters
+    // Getter
     public StockData getData() { return data; }
     public boolean isSuccess() { return success; }
     public String getSymbol() { return symbol; }
